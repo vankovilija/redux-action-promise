@@ -1,5 +1,5 @@
 {
-  "name": "redux-action-promise",
+  "name": "redux-action-promise-enhancer",
   "version": "1.0.0",
   "description": "Create a promise from a redux store and a list of expected actions that will resolve in the future",
   "main": "dist/index.js",
