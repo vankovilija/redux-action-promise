@@ -1,0 +1,23 @@
+node_modules/
+static/bundle.js
+.vscode
+dist/
+server/*bundle.js
+server/*bundle.js.map
+server/public/**/*.*
+server/index.html
+/lib/
+/website/build/
+/website/node_modules/
+/website/src/lib/
+/website/src/docs/
+npm-debug.log
+coverage
+
+#Exclude tsc generated files
+js/*.map
+js/ts.js
+
+.vs/
+.DS_Store
+.idea

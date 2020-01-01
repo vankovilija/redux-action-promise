@@ -1,0 +1,39 @@
+{
+  "name": "redux-action-promise",
+  "version": "1.0.0",
+  "description": "Create a promise from a redux store and a list of expected actions that will resolve in the future",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "test": "jest",
+    "build": "tsc",
+    "prepublish": "rm -rf dist && npm run test && npm run build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vankovilija/redux-action-promise.git"
+  },
+  "keywords": [
+    "redux",
+    "promise",
+    "actions",
+    "epics",
+    "component",
+    "rxjs"
+  ],
+  "author": "Ilija Vankov",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/vankovilija/redux-action-promise/issues"
+  },
+  "homepage": "https://github.com/vankovilija/redux-action-promise#readme",
+  "dependencies": {
+    "redux": "^4.0.5",
+    "typescript": "^3.7.4"
+  },
+  "devDependencies": {
+    "@types/jest": "^24.0.25",
+    "jest": "^24.9.0",
+    "ts-jest": "^24.2.0"
+  }
+}
