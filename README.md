@@ -1,9 +1,9 @@
 # Redux Action Promise
 Create a promise from a redux store and a list of expected actions that will resolve in the future
 
-##Usage
+## Usage
 
-###importing
+### importing
 ```typescript
 import ActionPromiseEnhancer from 'redux-action-promise';
 ```
@@ -20,7 +20,7 @@ using require
 const ActionPromiseEnhancer = require('redux-action-promise').default;
 ```
 
-###Composing with a redux store
+### Composing with a redux store
 
 Creation
 ```typescript
@@ -30,7 +30,7 @@ if you have multiple enhancers, simply using the redux <a href="https://redux.js
 ```typescript
 const store: ActionPromiseStore = createStore(myReducer, compose(ActionPromiseEnhancer, ...otherEnhancers));
 ```
-Handling Actions
+### Handling Actions
 ```typescript
 import ActionPromiseEnhancer, { ActionPromiseStore } from 'redux-action-promise';
 
@@ -66,7 +66,7 @@ promise.catch((error) => console.log(error.name, error.message));
 ```
 Logs `TimeoutError Timed out promise` after 100ms, the promise is reject with an `Error`
 
-Plain JS example:
+### Plain JS example:
 
 ```javascript
 const MyAction1 = 'my-action';
