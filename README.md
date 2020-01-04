@@ -1,23 +1,35 @@
 # Redux Action Promise
 Create a promise from a redux store and a list of expected actions that will resolve in the future
 
+## Installation
+
+```
+npm install redux-action-promise-enhancer
+```
+
+or with yarn
+
+```
+yarn add redux-action-promise-enhancer
+```
+
 ## Usage
 
 ### importing
 ```typescript
-import ActionPromiseEnhancer from 'redux-action-promise';
+import ActionPromiseEnhancer from 'redux-action-promise-enhancer';
 ```
 
 or
 
 ```typescript
-import { ActionPromiseEnhancer } from 'redux-action-promise';
+import { ActionPromiseEnhancer } from 'redux-action-promise-enhancer';
 ```
 
 using require
 
 ```typescript
-const ActionPromiseEnhancer = require('redux-action-promise').default;
+const ActionPromiseEnhancer = require('redux-action-promise-enhancer').default;
 ```
 
 ### Composing with a redux store
@@ -32,7 +44,7 @@ const store: ActionPromiseStore = createStore(myReducer, compose(ActionPromiseEn
 ```
 ### Handling Actions
 ```typescript
-import ActionPromiseEnhancer, { ActionPromiseStore } from 'redux-action-promise';
+import ActionPromiseEnhancer, { ActionPromiseStore } from 'redux-action-promise-enhancer';
 
 const MyAction1 = 'my-action';
 const store: ActionPromiseStore = createStore(myReducer, ActionPromiseEnhancer);
