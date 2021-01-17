@@ -1,4 +1,4 @@
-import { mustBeUniqueArray } from "./must-be-unique-array.util";
+import { mustBeUniqueArray } from './must-be-unique-array.util';
 
 
 describe('mustBeUniqueArray is a functionality to determine that input is an array with unique elements, without external dependencies', () => {

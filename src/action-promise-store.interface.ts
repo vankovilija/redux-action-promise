@@ -1,5 +1,5 @@
 import { Action, AnyAction, Store } from 'redux';
-import { Subscription } from "./subscription.interface";
+import { Subscription } from './subscription.interface';
 
 export type SubscriberFunction = (actions: (string | number)[]) => Subscription;
 

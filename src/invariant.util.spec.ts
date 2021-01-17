@@ -1,4 +1,4 @@
-import { invariant } from "./invariant.util";
+import { invariant } from './invariant.util';
 
 describe('invariant is used to throw errors', () => {
     it ('throws an error when statement is false with a specific format',  () => {

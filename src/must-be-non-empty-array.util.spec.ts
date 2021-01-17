@@ -1,4 +1,4 @@
-import { mustBeNonEmptyArray } from "./must-be-non-empty-array.util";
+import { mustBeNonEmptyArray } from './must-be-non-empty-array.util';
 
 
 describe('mustBeNonEmptyArray is a functionality to determine that input is a array with at least 1 element, without external dependencies', () => {

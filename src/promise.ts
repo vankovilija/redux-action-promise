@@ -1,14 +1,14 @@
-import { mustBeArray } from "./must-be-array.util";
-import { mustBeUniqueArray } from "./must-be-unique-array.util";
-import { mustNotContainArray } from "./must-not-contain-array.util";
-import { mustBeNumber } from "./must-be-number.util";
-import { invariant } from "./invariant.util";
-import { Subscription } from "./subscription.interface";
-import { RejectActionError } from "./reject-action-error";
-import { Action } from "redux";
-import { TimeoutError } from "./timeout-error";
-import { ValidationMode } from "./enhancer";
-import { SubscriberFunction } from "./action-promise-store.interface";
+import { mustBeArray } from './must-be-array.util';
+import { mustBeUniqueArray } from './must-be-unique-array.util';
+import { mustNotContainArray } from './must-not-contain-array.util';
+import { mustBeNumber } from './must-be-number.util';
+import { invariant } from './invariant.util';
+import { Subscription } from './subscription.interface';
+import { RejectActionError } from './reject-action-error';
+import { Action } from 'redux';
+import { TimeoutError } from './timeout-error';
+import { ValidationMode } from './enhancer';
+import { SubscriberFunction } from './action-promise-store.interface';
 
 type ReturnPromise = Promise<Action> & {cancel: () => void}
 

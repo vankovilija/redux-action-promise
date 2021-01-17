@@ -1,4 +1,4 @@
-import { mustBeNumber } from "./must-be-number.util";
+import { mustBeNumber } from './must-be-number.util';
 
 
 describe('mustBeNumber is a functionality to determine that input is a number, without external dependencies', () => {

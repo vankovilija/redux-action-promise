@@ -1,9 +1,9 @@
-import { Action } from "redux";
-import { ActiveSubscriptionsIndex } from "./enhancer";
+import { Action } from 'redux';
+import { ActiveSubscriptionsIndex } from './enhancer';
 
 export const processAction = (activeSubscriptionsIndex: ActiveSubscriptionsIndex, action: Action) => {
     if (!activeSubscriptionsIndex[action.type]) {
-        return;
+        return 'skipped';
     }
     const activeSubscriptionsBuffer = activeSubscriptionsIndex[action.type].slice();
     for (let i = 0; i < activeSubscriptionsBuffer.length; i++) {

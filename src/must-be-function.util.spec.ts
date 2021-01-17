@@ -1,4 +1,4 @@
-import { mustBeFunction } from "./must-be-function.util";
+import { mustBeFunction } from './must-be-function.util';
 
 describe('mustBeFunction is a functionality to determine that input is a function, without external dependencies', () => {
     it ('throws if the input is not a function', () => {

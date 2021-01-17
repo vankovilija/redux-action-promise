@@ -1,4 +1,4 @@
-import { mustNotContainArray } from "./must-not-contain-array.util";
+import { mustNotContainArray } from './must-not-contain-array.util';
 
 
 describe('mustNotContainArray is a functionality to determine that no elements from array1 are contained in array2, without external dependencies', () => {

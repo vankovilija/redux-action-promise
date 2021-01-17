@@ -1,10 +1,10 @@
 import { Action, StoreEnhancer } from 'redux';
 import { mustBeFunction } from './must-be-function.util';
-import { EnhancedMethods } from "./action-promise-store.interface";
-import { subscribeToActions } from "./subscribe-to-actions";
-import { promise } from "./promise";
-import { invariant } from "./invariant.util";
-import { processAction } from "./process-action";
+import { EnhancedMethods } from './action-promise-store.interface';
+import { subscribeToActions } from './subscribe-to-actions';
+import { promise } from './promise';
+import { invariant } from './invariant.util';
+import { processAction } from './process-action';
 
 export type ActiveSubscriptionsIndex = {[action: string]: ((action: Action) => void)[][]}
 

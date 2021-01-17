@@ -1,4 +1,4 @@
-import { mustBeArray } from "./must-be-array.util";
+import { mustBeArray } from './must-be-array.util';
 
 describe('mustBeArray functionality to determine that input is an array, without external dependencies', () => {
     it ('throws an error when the input is not an array', () => {

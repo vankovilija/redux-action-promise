@@ -1,5 +1,5 @@
 import { invariant } from './invariant.util';
-import { mustBeArray } from "./must-be-array.util";
+import { mustBeArray } from './must-be-array.util';
 
 export const mustBeNonEmptyArray = (arr, arrayName: string) => {
     mustBeArray(arr, arrayName)
