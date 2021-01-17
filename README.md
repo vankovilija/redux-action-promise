@@ -42,27 +42,87 @@ if you have multiple enhancers, simply using the redux <a href="https://redux.js
 ```typescript
 const store: ActionPromiseStore = createStore(myReducer, compose(ActionPromiseEnhancer, ...otherEnhancers));
 ```
-### Handling Actions
+### Handling Action Subscriptions
 ```typescript
 import ActionPromiseEnhancer, { ActionPromiseStore } from 'redux-action-promise-enhancer';
 
 const MyAction1 = 'my-action';
 const store: ActionPromiseStore = createStore(myReducer, ActionPromiseEnhancer);
-const promise = store.promise([MyAction1]);
-promise.then((action) => console.log(action));
+const subscription = store.subscribeToActions([MyAction1]);
+subscription.addListener((action) => console.log(action))
 store.dispatch({
-    type: MyAction1
+    type: MyAction1,
+    payload: 1
+});
+store.dispatch({
+    type: MyAction1,
+    payload: 2
+});
+subscription.unsubscribe();
+store.dispatch({
+    type: MyAction1,
+    payload: 3
 });
 ```
-logs `{type: 'my-action'}`
+logs:
+```
+{
+    type: 'my-action',
+    payload: 1
+}
 
+{
+    type: 'my-action',
+    payload: 2
+}
+```
+### Handling Action Promises
+```typescript
+import ActionPromiseEnhancer, { ActionPromiseStore } from 'redux-action-promise-enhancer';
+
+const MyAction1 = 'my-action';
+const store: ActionPromiseStore = createStore(myReducer, ActionPromiseEnhancer);
+
+const promise = store.promise([MyAction1]);
+promise.then((action) => console.log(action));
+
+store.dispatch({
+    type: MyAction1,
+    payload: 1
+});
+store.dispatch({
+    type: MyAction1,
+    payload: 2
+});
+```
+
+logs:
+```
+{
+    type: 'my-action',
+    payload: 1
+}
+```
+Promises can also be canceled, like so:
+```typescript
+const promise = store.promise([MyAction1]);
+promise.then((action) => console.log(action));
+promise.cancel();
+store.dispatch({
+    type: MyAction1,
+    payload: 1
+});
+```
+logs:
+```
+```
 If you want to reject the promise on a certain action, the action promise will be rejected with that action
 
 ```typescript
 const MyRejectAction1 = 'my-reject-action';
 const store: ActionPromiseStore = createStore(myReducer, ActionPromiseEnhancer);
 const promise = store.promise([], [MyRejectAction1]);
-promise.catch((action) => console.log(action));
+promise.catch((error: RejectActionErrorError) => console.log(error.rejectAction));
 store.dispatch({
     type: MyRejectAction1
 });
@@ -74,7 +134,7 @@ If you want to specify a timeout for the generated promise, you can do that in m
 ```typescript
 const store: ActionPromiseStore = createStore(myReducer, ActionPromiseEnhancer);
 const promise = store.promise([], [], 100);
-promise.catch((error) => console.log(error.name, error.message));
+promise.catch((error: TimeoutError) => console.log(error.name, error.message));
 ```
 Logs `TimeoutError Timed out promise` after 100ms, the promise is reject with an `Error`
 

@@ -1,7 +1,11 @@
 export * from './action-promise-store.interface'
-import { ActionPromiseEnhancer } from './enhancer'
+export * from './reject-action-error'
+export * from './timeout-error'
+import { ActionPromiseEnhancer, ValidationMode } from './enhancer'
 
 export {
-    ActionPromiseEnhancer
+    ActionPromiseEnhancer,
+    ValidationMode
 };
+
 export default ActionPromiseEnhancer;
