@@ -1,6 +1,6 @@
 import { Action } from "redux";
 
-export class RejectActionErrorError extends Error {
+export class RejectActionError extends Error {
     rejectAction: Action;
 
     constructor(rejectAction: Action) {
