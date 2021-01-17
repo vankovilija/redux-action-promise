@@ -1,58 +1,52 @@
 import { Action, StoreEnhancer } from 'redux';
 import { mustBeFunction } from './must-be-function.util';
-import { mustBeArray } from './must-be-array.util';
-import { mustBeNumber } from './must-be-number.util';
-import { TimeoutError } from './timeout-error';
+import { EnhancedMethods } from './action-promise-store.interface';
+import { subscribeToActions } from './subscribe-to-actions';
+import { promise } from './promise';
+import { invariant } from './invariant.util';
+import { processAction } from './process-action';
 
-export const ActionPromiseEnhancer: StoreEnhancer<{promise: (resolveActions: (string | number)[], rejectActions?: (string | number)[], timeout?: number) => Promise<Action>}> = (createStore) => {
-    mustBeFunction(createStore, 'createStore');
+export type ActiveSubscriptionsIndex = {[action: string]: ((action: Action) => void)[][]}
+
+export enum ValidationMode {
+    RUNTIME = 'runtime',
+    COMPILETIME = 'compiletime'
+}
+
+let validationMode: ValidationMode;
+let isExecuted = false;
+
+export const ActionPromiseEnhancer: StoreEnhancer<EnhancedMethods> & {validationMode: ValidationMode} = (createStore) => {
+    isExecuted = true;
+    if (ActionPromiseEnhancer.validationMode === ValidationMode.RUNTIME) {
+        mustBeFunction(createStore, 'createStore');
+    }
     return (...args) => {
         const store = createStore(...args);
 
-        const activePromises = [];
-
-        const processAction = (action) => {
-            const activePromisesBuffer = activePromises.slice();
-            for (const activePromise of activePromisesBuffer) {
-                let handled: boolean = false;
-                if (activePromise.resolveActions.indexOf(action.type) !== -1) {
-                    activePromise.resolve(action);
-                    handled = true;
-                } else if (activePromise.rejectActions.indexOf(action.type) !== -1) {
-                    activePromise.reject(action);
-                    handled = true;
-                }
-                if (handled) {
-                    activePromises.splice(activePromises.indexOf(activePromise), 1);
-                }
-            }
-        };
+        const activeSubscriptionsIndex: ActiveSubscriptionsIndex = {};
 
         const dispatch = (action) => {
-            processAction(action);
+            processAction(activeSubscriptionsIndex, action);
             return store.dispatch(action);
-        }
+        };
 
-        const promise = (resolveActions: (string | number)[], rejectActions: (string | number)[] = [], timeout: number = -1) => {
-            mustBeArray(resolveActions, 'resolveActions');
-            mustBeArray(rejectActions, 'rejectActions');
-            mustBeNumber(timeout, 'timeout');
-            let promise = (new Promise((resolve, reject) => {
-                activePromises.push({
-                    resolve, reject, resolveActions, rejectActions, timeout
-                })
-            })) as Promise<Action>;
-            if (timeout > -1) {
-                promise = Promise.race([promise, new Promise((_, reject) => {
-                    setTimeout(() => {
-                        reject(new TimeoutError());
-                        activePromises.splice(activePromises.indexOf(promise), 1);
-                    }, timeout);
-                })]) as Promise<Action>;
-            }
-            return promise;
-        }
+        const subscriber = subscribeToActions(ActionPromiseEnhancer.validationMode, activeSubscriptionsIndex);
 
-        return { ...store, dispatch, promise }
+        const promiseFunction = promise(ActionPromiseEnhancer.validationMode, subscriber);
+
+        return { ...store, dispatch, promise: promiseFunction, subscribeToActions: subscriber }
     }
-}
+};
+
+Object.defineProperty(ActionPromiseEnhancer, 'validationMode', {
+    get: () => {
+        return validationMode;
+    },
+    set: (v: ValidationMode) => {
+        invariant(!isExecuted, 'Can only set validationMode before using the ActionPromiseEnhancer');
+        validationMode = v;
+    }
+});
+
+ActionPromiseEnhancer.validationMode = ValidationMode.RUNTIME;
