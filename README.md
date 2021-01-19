@@ -50,12 +50,16 @@ const MyAction1 = 'my-action';
 const store: ActionPromiseStore = createStore(myReducer, ActionPromiseEnhancer);
 const { addListener, unsubscribe } = store.subscribeToActions([MyAction1]);
 
-addListener((action) => console.log(action));
+addListener((action) => console.log('log 1', action));
+const listener2 = addListener((action) => console.log('log 1', action));
 
 store.dispatch({
     type: MyAction1,
     payload: 1
 });
+
+listener2.remove();
+
 store.dispatch({
     type: MyAction1,
     payload: 2
@@ -70,31 +74,60 @@ store.dispatch({
 ```
 logs:
 ```
-{
+log 1 {
     type: 'my-action',
     payload: 1
 }
 
-{
+log 2 {
+    type: 'my-action',
+    payload: 1
+}
+
+log 1 {
     type: 'my-action',
     payload: 2
+}
+```
+
+You can also use action creator functions or action objects for any action array
+
+```typescript
+import ActionPromiseEnhancer, { ActionPromiseStore } from 'redux-action-promise-enhancer';
+
+const MyActionCreator1 = (payload) => {type: 'my-action', payload};
+const store: ActionPromiseStore = createStore(myReducer, ActionPromiseEnhancer);
+const { addListener, unsubscribe } = store.subscribeToActions([MyActionCreator1]);
+
+addListener((action) => console.log(action));
+
+store.dispatch(MyActionCreator1(1));
+```
+logs:
+```
+{
+    type: 'my-action',
+    payload: 1
 }
 ```
 ### Handling Action Promises
 ```typescript
 import ActionPromiseEnhancer, { ActionPromiseStore } from 'redux-action-promise-enhancer';
 
-const MyAction1 = 'my-action';
+const MyActionType1 = 'my-action';
+const MyAction2 = {type: 'my-action-2'};
 const store: ActionPromiseStore = createStore(myReducer, ActionPromiseEnhancer);
 
 const logAction = async () => {
-    console.log(await store.promise([MyAction1]));
+    console.log(await store.promise([MyActionType1, MyAction2]));
 };
 
 store.dispatch({
-    type: MyAction1,
+    type: MyActionType1,
     payload: 1
 });
+
+store.dispatch(MyAction2);
 
 logAction();
 
@@ -102,6 +135,8 @@ store.dispatch({
     type: MyAction1,
     payload: 2
 });
+
+store.dispatch(MyAction2);
 ```
 
 logs:
@@ -110,6 +145,8 @@ logs:
     type: 'my-action',
     payload: 2
 }
+
+{ type: 'my-action-2' }
 ```
 
 If you want to reject the promise on a certain action, the action promise will be rejected with that action

@@ -5,14 +5,15 @@ import { mustBeNumber } from './must-be-number.util';
 import { invariant } from './invariant.util';
 import { Subscription } from './subscription.interface';
 import { RejectActionError } from './reject-action-error';
-import { Action } from 'redux';
+import { Action, AnyAction } from 'redux';
 import { TimeoutError } from './timeout-error';
 import { ValidationMode } from './enhancer';
-import { SubscriberFunction } from './action-promise-store.interface';
+import { ActionCreatorType, SubscriberFunction } from './action-promise-store.interface';
 
 type ReturnPromise = Promise<Action> & {cancel: () => void}
 
-export const promise = (validationMode: ValidationMode, subscribeToActions: SubscriberFunction) => (resolveActions: (string | number)[], rejectActions: (string | number)[] = [], timeout: number = -1) => {
+export const promise = (validationMode: ValidationMode, subscribeToActions: SubscriberFunction) =>
+    (resolveActions: (string | number | ActionCreatorType | AnyAction)[], rejectActions: (string | number | ActionCreatorType | AnyAction)[] = [], timeout: number = -1) => {
     if (validationMode === ValidationMode.RUNTIME) {
         mustBeArray(resolveActions, 'resolveActions');
         mustBeArray(rejectActions, 'rejectActions');
