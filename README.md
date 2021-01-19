@@ -51,7 +51,7 @@ const store: ActionPromiseStore = createStore(myReducer, ActionPromiseEnhancer);
 const { addListener, unsubscribe } = store.subscribeToActions([MyAction1]);
 
 addListener((action) => console.log('log 1', action));
-const listener2 = addListener((action) => console.log('log 1', action));
+const listener2 = addListener((action) => console.log('log 2', action));
 
 store.dispatch({
     type: MyAction1,
