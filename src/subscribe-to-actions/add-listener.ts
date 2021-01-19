@@ -15,6 +15,9 @@ export const addListener = (
     const remove = removeListener(subscriptionState, unsubscribe, listeners, callback);
 
     return {
+        /**
+         * Removes the listener callback function associated to this object
+         */
         remove
     }
 };

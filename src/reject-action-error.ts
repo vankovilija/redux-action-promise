@@ -6,6 +6,6 @@ export class RejectActionError extends Error {
     constructor(rejectAction: Action) {
         super(`Rejected action ${rejectAction.type}`);
         this.name = 'RejectAction';
-        this.rejectAction = rejectAction
+        this.rejectAction = rejectAction;
     }
 }
