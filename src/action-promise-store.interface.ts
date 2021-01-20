@@ -7,7 +7,28 @@ export type ActionCreatorType<A extends Action = AnyAction> =
 export type SubscriberFunction<A extends Action = AnyAction> =
     (actions: (string | number | AnyAction | ActionCreatorType<A>)[]) => Subscription;
 
+export type PromiseAction<A extends Action = AnyAction> =
+    A & { promise: {
+        resolveActions?: (string | number | AnyAction | ActionCreatorType<A>)[],
+        rejectActions?: (string | number | AnyAction | ActionCreatorType<A>)[],
+        timeout?: number
+    }};
+
+export type PromiseFunction<A extends Action = AnyAction> =
+    (
+        resolveActions: (string | number | AnyAction | ActionCreatorType<A>)[],
+        rejectActions?: (string | number | AnyAction | ActionCreatorType<A>)[],
+        timeout?: number
+    ) => Promise<A> & {cancel: () => void};
+
+export interface DispatchFunction<A extends Action = AnyAction> {
+    <T extends A>(action: T): (T | (Promise<AnyAction> & {cancel: () => void}))
+}
+
 export type EnhancedMethods<S = any, A extends Action = AnyAction> = {
+
+    dispatch: DispatchFunction<A>
+
     /**
      * The promise function is used to generate a promise that resolves or rejects when any of a given list of actions
      * is dispatched on the target store.
@@ -24,11 +45,7 @@ export type EnhancedMethods<S = any, A extends Action = AnyAction> = {
      * that action that is dispatched in a `rejectAction` property of the error object
      */
 
-    promise: (
-        resolveActions: (string | number | AnyAction | ActionCreatorType<A>)[],
-        rejectActions?: (string | number | AnyAction | ActionCreatorType<A>)[],
-        timeout?: number
-    ) => Promise<A> & {cancel: () => void},
+    promise: PromiseFunction<A>
 
     /**
      * subscribeToActions is used to generate a subscription object that calls attached listeners whenever any of the

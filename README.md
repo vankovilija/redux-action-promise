@@ -220,6 +220,38 @@ promise.catch((error: TimeoutError) => console.log(error.name, error.message));
 ```
 Logs `TimeoutError Timed out promise` after 100ms, the promise is reject with an `Error`
 
+### Response Actions
+
+sometimes we want to dispatch an action, and we want to know when a following action has occurred where we dispatched our action, however, we can't easily do this with redux, this is where response actions come in, when you feed a response action to the dispatch function it will respond with a promise that you can await to get the payload of the subsequently dispatched action
+
+```typescript
+import ActionPromiseEnhancer, { createResponseAction, ActionPromiseStore } from 'redux-action-promise-enhancer';
+
+const MyActionType1 = 'my-action';
+const MyAction2 = {type: 'my-action-2'};
+const store: ActionPromiseStore = createStore(myReducer, ActionPromiseEnhancer);
+
+const dispatch = async () => {
+    const response = await store.dispatch(createResponseAction({
+        type: MyActionType1,
+        payload: 1
+    }, [MyAction2]));
+    
+    console.log('awaited response', response);
+};
+
+store.subscribeToActions([MyActionType1]).addListener(() => {
+    store.dispatch(MyAction2);
+});
+
+dispatch();
+```
+
+logs:
+```
+awaited response { type: 'my-action-2' }
+```
+
 ### Validation Mode:
 
 The action promise enhancer validates the input it is given on each function, this ensures unique inputs of actions to avoid duplication entries or similar errors.

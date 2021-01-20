@@ -4,7 +4,7 @@ import { EnhancedMethods } from './action-promise-store.interface';
 import { subscribeToActions } from './subscribe-to-actions';
 import { promise } from './promise';
 import { invariant } from './invariant.util';
-import { processAction } from './process-action';
+import { dispatch } from './dispatch';
 
 export type ActiveSubscriptionsIndex = {[action: string]: ((action: Action) => void)[][]}
 
@@ -26,18 +26,15 @@ export const ActionPromiseEnhancer: StoreEnhancer<EnhancedMethods> & {validation
 
         const activeSubscriptionsIndex: ActiveSubscriptionsIndex = {};
 
-        const dispatch = (action) => {
-            processAction(activeSubscriptionsIndex, action);
-            return store.dispatch(action);
-        };
-
         const subscriber = subscribeToActions(ActionPromiseEnhancer.validationMode, activeSubscriptionsIndex);
 
         const promiseFunction = promise(ActionPromiseEnhancer.validationMode, subscriber);
 
+        const dispatchFunction = dispatch(activeSubscriptionsIndex, promiseFunction, store.dispatch);
+
         return {
             ...store,
-            dispatch,
+            dispatch: dispatchFunction,
             /**
              * The promise function is used to generate a promise that resolves or rejects when any of a given list of actions
              * is dispatched on the target store.
@@ -68,7 +65,7 @@ export const ActionPromiseEnhancer: StoreEnhancer<EnhancedMethods> & {validation
              *     - unsubscribe allows you to remove the subscription when no longer in use.
              */
             subscribeToActions: subscriber
-        }
+        } as any;
     }
 };
 
