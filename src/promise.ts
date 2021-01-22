@@ -5,35 +5,53 @@ import { mustBeNumber } from './must-be-number.util';
 import { invariant } from './invariant.util';
 import { Subscription } from './subscription.interface';
 import { RejectActionError } from './reject-action-error';
-import { Action, AnyAction } from 'redux';
+import { Action } from 'redux';
 import { TimeoutError } from './timeout-error';
 import { ValidationMode } from './enhancer';
-import { ActionCreatorType, SubscriberFunction } from './action-promise-store.interface';
+import { ArrayOrSingleAnyTypeOfAction, SubscriberFunction } from './action-promise-store.interface';
+import { convertToArray } from './convert-to-array.util';
 
 type ReturnPromise = Promise<Action> & {cancel: () => void}
 
 export const promise = (validationMode: ValidationMode, subscribeToActions: SubscriberFunction) =>
-    (resolveActions: (string | number | ActionCreatorType | AnyAction)[], rejectActions: (string | number | ActionCreatorType | AnyAction)[] = [], timeout: number = -1) => {
+    /**
+     * The promise function is used to generate a promise that resolves or rejects when any of a given list of actions
+     * is dispatched on the target store.
+     *
+     * @param {number|string|Action|ActionCreator<Action> | Array.<number|string|Action|ActionCreator<Action>>} resolveActions is an array of action types or action creators, when any
+     * of these is dispatched to the store the promise will be resolved.
+     *
+     * @param {number|string|Action|ActionCreator<Action> | Array.<number|string|Action|ActionCreator<Action>>} rejectActions is an array of action types or action creators, when any of
+     * these is dispatched to the store the promise will be rejected.
+     *
+     * @param timeout is the number of ms that will timeout this promise and cause it to reject with a TimeoutError
+     *
+     * @returns {Promise.<Action>} resolves with the action that is dispatches, or rejects with an error that contains
+     * that action that is dispatched in a `rejectAction` property of the error object
+     */
+    (resolveActions: ArrayOrSingleAnyTypeOfAction, rejectActions: ArrayOrSingleAnyTypeOfAction = [], timeout: number = -1) => {
+    const resActions = convertToArray(resolveActions);
+    const rejActions = convertToArray(rejectActions);
     if (validationMode === ValidationMode.RUNTIME) {
-        mustBeArray(resolveActions, 'resolveActions');
-        mustBeArray(rejectActions, 'rejectActions');
-        mustBeUniqueArray(resolveActions, (item) => `Resolve action '${item}' is duplicated`);
-        mustBeUniqueArray(rejectActions, (item) => `Reject action '${item}' is duplicated`);
-        mustNotContainArray(resolveActions, rejectActions, (item) => `Action '${item}' is present in resolve and reject actions`);
+        mustBeArray(resActions, 'resolveActions');
+        mustBeArray(rejActions, 'rejectActions');
+        mustBeUniqueArray(resActions, (item) => `Resolve action '${item}' is duplicated`);
+        mustBeUniqueArray(rejActions, (item) => `Reject action '${item}' is duplicated`);
+        mustNotContainArray(resActions, rejActions, (item) => `Action '${item}' is present in resolve and reject actions`);
         mustBeNumber(timeout, 'timeout');
-        invariant(resolveActions.length > 0 || rejectActions.length > 0, 'One of the resolve or reject actions array must contain elements');
+        invariant(resActions.length > 0 || rejActions.length > 0, 'One of the resolve or reject actions array must contain elements');
     }
 
     let resolveSubscription: Subscription;
 
-    if (resolveActions.length > 0) {
-        resolveSubscription = subscribeToActions(resolveActions);
+    if (resActions.length > 0) {
+        resolveSubscription = subscribeToActions(resActions);
     }
 
     let rejectSubscription: Subscription;
 
-    if (rejectActions.length > 0) {
-        rejectSubscription = subscribeToActions(rejectActions);
+    if (rejActions.length > 0) {
+        rejectSubscription = subscribeToActions(rejActions);
     }
 
     const finalizePromise = () => {

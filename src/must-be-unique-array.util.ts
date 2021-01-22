@@ -6,4 +6,4 @@ export const mustBeUniqueArray = (arr, errorTemplate: (item: string) => string) 
         invariant(foundItems.indexOf(item) === -1, errorTemplate(item));
         foundItems.push(item);
     }
-}
+};
