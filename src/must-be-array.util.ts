@@ -1,5 +1,6 @@
 import { invariant } from './invariant.util';
+import { isArray } from './is-array.util';
 
 export const mustBeArray = (arr, arrayName: string) => {
-    invariant(arr && typeof arr.length === 'number', `${arrayName} must be an array`)
-}
+    invariant(isArray(arr), `${arrayName} must be an array`)
+};

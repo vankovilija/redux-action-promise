@@ -42,74 +42,100 @@ if you have multiple enhancers, simply using the redux <a href="https://redux.js
 ```typescript
 const store: ActionPromiseStore = createStore(myReducer, compose(ActionPromiseEnhancer, ...otherEnhancers));
 ```
-### Handling Action Subscriptions
-```typescript
-import ActionPromiseEnhancer, { ActionPromiseStore } from 'redux-action-promise-enhancer';
+### Response Actions
 
-const MyAction1 = 'my-action';
-const store: ActionPromiseStore = createStore(myReducer, ActionPromiseEnhancer);
-const { addListener, unsubscribe } = store.subscribeToActions([MyAction1]);
-
-addListener((action) => console.log('log 1', action));
-const listener2 = addListener((action) => console.log('log 2', action));
-
-store.dispatch({
-    type: MyAction1,
-    payload: 1
-});
-
-listener2.remove();
-
-store.dispatch({
-    type: MyAction1,
-    payload: 2
-});
-
-unsubscribe();
-
-store.dispatch({
-    type: MyAction1,
-    payload: 3
-});
-```
-logs:
-```
-log 1 {
-    type: 'my-action',
-    payload: 1
-}
-
-log 2 {
-    type: 'my-action',
-    payload: 1
-}
-
-log 1 {
-    type: 'my-action',
-    payload: 2
-}
-```
-
-You can also use action creator functions or action objects for any action array
+sometimes we want to dispatch an action, and we want to know when a following action has occurred where we dispatched our action, however, we can't easily do this with redux, this is where response actions come in, when you feed a response action to the dispatch function it will respond with a promise that you can await to get the payload of the subsequently dispatched action
 
 ```typescript
-import ActionPromiseEnhancer, { ActionPromiseStore } from 'redux-action-promise-enhancer';
+import ActionPromiseEnhancer, { createResponseAction, ActionPromiseStore } from 'redux-action-promise-enhancer';
 
-const MyActionCreator1 = (payload) => {type: 'my-action', payload};
+const MyActionType1 = 'my-action';
+const MyResponseAction1 = {type: 'my-action-completed'};
+const responseActionCreator = createResponseAction((payload: number) => ({
+        type: MyActionType1,
+        payload
+    }), MyResponseAction1);
+
 const store: ActionPromiseStore = createStore(myReducer, ActionPromiseEnhancer);
-const { addListener, unsubscribe } = store.subscribeToActions([MyActionCreator1]);
 
-addListener((action) => console.log(action));
+const dispatch = async () => {
+    const response = await store.dispatch(responseActionCreator(1));
+    
+    console.log('awaited response', response);
+};
 
-store.dispatch(MyActionCreator1(1));
+store.subscribeToActions(MyActionType1).addListener((action) => {
+    console.log('request action', action)
+    store.dispatch(MyResponseAction1);
+});
+
+dispatch();
 ```
+
 logs:
 ```
-{
+request action {
     type: 'my-action',
     payload: 1
 }
+
+awaited response { type: 'my-action-completed' }
 ```
+
+handling errors in response actions
+
+```typescript
+const MyActionType1 = 'my-action';
+const MyErrorAction1 = {type: 'my-action-error'};
+const responseAction = createResponseAction(
+    {type: MyActionType1},
+    undefined,
+    MyErrorAction1
+);
+
+const dispatch = async () => {
+    try {
+        const response = await store.dispatch(responseAction);
+    
+        console.log('awaited response', response);
+    } catch (e) {
+        console.log('error while executing', e.rejectAction);
+    }
+};
+
+store.subscribeToActions(MyActionType1).addListener((action) => {
+    console.log('request action', action)
+    store.dispatch(MyErrorAction1);
+});
+
+dispatch();
+```
+
+logs:
+```
+request action {
+    type: 'my-action',
+    payload: 1
+}
+
+error while executing { type: 'my-action-error' }
+```
+
+timeout a response action
+
+```typescript
+const responseAction = createResponseAction(
+    {type: MyActionType1}, 
+    MyResponseAction1,
+    undefined,
+    100
+);
+store.dispatch(responseAction)
+    .catch((error: TimeoutError) => console.log(error.name, error.message));
+```
+Logs `TimeoutError Timed out promise` after 100ms, the promise is reject with an `Error`
+
+
 ### Handling Action Promises
 ```typescript
 import ActionPromiseEnhancer, { ActionPromiseStore } from 'redux-action-promise-enhancer';
@@ -220,36 +246,73 @@ promise.catch((error: TimeoutError) => console.log(error.name, error.message));
 ```
 Logs `TimeoutError Timed out promise` after 100ms, the promise is reject with an `Error`
 
-### Response Actions
-
-sometimes we want to dispatch an action, and we want to know when a following action has occurred where we dispatched our action, however, we can't easily do this with redux, this is where response actions come in, when you feed a response action to the dispatch function it will respond with a promise that you can await to get the payload of the subsequently dispatched action
-
+### Handling Action Subscriptions
 ```typescript
-import ActionPromiseEnhancer, { createResponseAction, ActionPromiseStore } from 'redux-action-promise-enhancer';
+import ActionPromiseEnhancer, { ActionPromiseStore } from 'redux-action-promise-enhancer';
 
-const MyActionType1 = 'my-action';
-const MyAction2 = {type: 'my-action-2'};
+const MyAction1 = 'my-action';
 const store: ActionPromiseStore = createStore(myReducer, ActionPromiseEnhancer);
+const { addListener, unsubscribe } = store.subscribeToActions([MyAction1]);
 
-const dispatch = async () => {
-    const response = await store.dispatch(createResponseAction({
-        type: MyActionType1,
-        payload: 1
-    }, [MyAction2]));
-    
-    console.log('awaited response', response);
-};
+addListener((action) => console.log('log 1', action));
+const listener2 = addListener((action) => console.log('log 2', action));
 
-store.subscribeToActions([MyActionType1]).addListener(() => {
-    store.dispatch(MyAction2);
+store.dispatch({
+    type: MyAction1,
+    payload: 1
 });
 
-dispatch();
-```
+listener2.remove();
 
+store.dispatch({
+    type: MyAction1,
+    payload: 2
+});
+
+unsubscribe();
+
+store.dispatch({
+    type: MyAction1,
+    payload: 3
+});
+```
 logs:
 ```
-awaited response { type: 'my-action-2' }
+log 1 {
+    type: 'my-action',
+    payload: 1
+}
+
+log 2 {
+    type: 'my-action',
+    payload: 1
+}
+
+log 1 {
+    type: 'my-action',
+    payload: 2
+}
+```
+
+You can also use action creator functions or action objects for any action array
+
+```typescript
+import ActionPromiseEnhancer, { ActionPromiseStore } from 'redux-action-promise-enhancer';
+
+const MyActionCreator1 = (payload) => {type: 'my-action', payload};
+const store: ActionPromiseStore = createStore(myReducer, ActionPromiseEnhancer);
+const { addListener, unsubscribe } = store.subscribeToActions([MyActionCreator1]);
+
+addListener((action) => console.log(action));
+
+store.dispatch(MyActionCreator1(1));
+```
+logs:
+```
+{
+    type: 'my-action',
+    payload: 1
+}
 ```
 
 ### Validation Mode:

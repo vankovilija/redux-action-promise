@@ -9,18 +9,33 @@ import { isActionCreator } from './is-action-creator.util';
 import { isActionObject } from './is-action-object.util';
 import { ActionCreatorType } from '../action-promise-store.interface';
 import { AnyAction } from 'redux';
+import { convertToArray } from '../convert-to-array.util';
 
 export const subscribeToActions = (validationMode: ValidationMode, activeSubscriptionsIndex: ActiveSubscriptionsIndex) =>
+    /**
+     * subscribeToActions is used to generate a subscription object that calls attached listeners whenever any of the
+     * actions specified in the subscription are dispatched to the store.
+     *
+     * @param {number|string|Action|ActionCreator<Action> | Array.<number|string|Action|ActionCreator<Action>>} actions is an array of action types or action creates, when any of these
+     * are dispatched to the store, the listener callback functions attached to the returned subscription will be called
+     * with the action that is dispatched.
+     *
+     * @returns {Subscription} an object with 2 methods
+     *     - addListener allows you to add a callback function to the subscription that will be executed when any of the
+     *     actions provided are dispatched to the store.
+     *     - unsubscribe allows you to remove the subscription when no longer in use.
+     */
     (actions: (string | number | ActionCreatorType | AnyAction)[]): Subscription => {
+    const processedActions = convertToArray(actions);
     if (validationMode === ValidationMode.RUNTIME) {
-        mustBeNonEmptyArray(actions, 'actions');
-        mustBeUniqueArray(actions, (item) => `Action '${item}' is duplicated`);
+        mustBeNonEmptyArray(processedActions, 'actions');
+        mustBeUniqueArray(processedActions, (item) => `Action '${item}' is duplicated`);
     }
 
     const listeners = [];
     let subscriptionState = {active: false};
 
-    const mappedActions = actions.map((action) => {
+    const mappedActions = processedActions.map((action) => {
         if (isActionCreator(action)) {
             const executedAction = action();
             return executedAction.type;
@@ -41,15 +56,6 @@ export const subscribeToActions = (validationMode: ValidationMode, activeSubscri
     const addListener = addListenerFactory(subscriptionState, subscribe, unsubscribe, listeners);
 
     return {
-        /**
-         * Adds a listener callback function to the subscription that will be called when any of the actions associated to
-         * the subscription are dispatched on the store.
-         *
-         * @param {Function} callback is a function with one parameter, which is the action that was executed
-         *
-         * @returns {Listener} an object with a remove method that allows you to remove the added listener callback function
-         * from the subscription
-         */
         addListener,
         /**
          * Removes the subscription from the store.

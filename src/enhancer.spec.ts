@@ -1,11 +1,13 @@
 import { createStore } from 'redux';
 import { ActionPromiseEnhancer } from './enhancer';
 import { ActionPromiseStore } from './action-promise-store.interface';
+import { createAction } from '@reduxjs/toolkit';
+import { createResponseAction } from './create-response-action';
 
 describe('ActionPromiseEnhancer', () => {
     let store: ActionPromiseStore;
     beforeEach(() => {
-        store = createStore((store) => store, ActionPromiseEnhancer)
+        store = createStore((store) => store, ActionPromiseEnhancer);
     });
     describe('subscribeToActions', () => {
         it ('calls the listener function of subscriptions', () => {
@@ -18,6 +20,7 @@ describe('ActionPromiseEnhancer', () => {
             store.dispatch(action);
             expect(subscribeListener).toBeCalledWith(action);
         });
+
         it ('calls the multiple listener function of subscriptions', () => {
             const subscribeListener1 = jest.fn();
             const subscribeListener2 = jest.fn();
@@ -31,6 +34,7 @@ describe('ActionPromiseEnhancer', () => {
             expect(subscribeListener1).toBeCalledWith(action);
             expect(subscribeListener2).toBeCalledWith(action);
         });
+
         it ('it does not call a listener after calling remove on it', () => {
             const subscribeListener1 = jest.fn();
             const subscribeListener2 = jest.fn();
@@ -45,6 +49,7 @@ describe('ActionPromiseEnhancer', () => {
             expect(subscribeListener1).toBeCalledWith(action);
             expect(subscribeListener2).not.toBeCalled();
         });
+
         it ('does not execute listener when unsubscribe is called', () => {
             const subscribeListener = jest.fn();
             const subscription = store.subscribeToActions(['testAction']);
@@ -56,9 +61,11 @@ describe('ActionPromiseEnhancer', () => {
             store.dispatch(action);
             expect(subscribeListener).not.toBeCalled();
         });
+
         it ('rejects requests to do a subscription without any actions', () => {
             expect(() => store.subscribeToActions([])).toThrowError('actions must be a non-empty array');
         });
+
         it ('rejects requests to do a subscription with duplicated actions', () => {
             expect(() => store.subscribeToActions(['testAction', 'testAction'])).toThrowError('Action \'testAction\' is duplicated');
         });
@@ -123,6 +130,38 @@ describe('ActionPromiseEnhancer', () => {
             // @ts-ignore
             await expect(p).rejects.toHaveProperty('name', 'TimeoutError');
             return expect(p).rejects.toHaveProperty('message', 'Timed out promise')
+        });
+    });
+    describe('dispatch', () => {
+        it ('returns the dispatched action when the action is a normal action',  () => {
+            const actionCreator = createAction('testAction');
+            const action = actionCreator();
+            const returnValue = store.dispatch(action);
+            expect(returnValue).toBe(action);
+        });
+
+        it ('returns and resolve a promise from dispatching a response action with the response', () => {
+            const responseActionCreator = createAction('testActionResponse');
+            const actionCreator = createResponseAction(createAction('testAction'), responseActionCreator);
+
+            const response = store.dispatch(actionCreator());
+
+            const responseAction = responseActionCreator();
+            store.dispatch(responseAction);
+
+            return expect(response).resolves.toBe(responseAction);
+        });
+
+        it ('rejects a promise returned from dispatch with a error containing the reject action', () => {
+            const rejectActionCreator = createAction('testActionReject');
+            const actionCreator = createResponseAction(createAction('testAction'), undefined, rejectActionCreator);
+
+            const response = store.dispatch(actionCreator());
+
+            const rejectAction = rejectActionCreator();
+            store.dispatch(rejectAction);
+
+            return expect(response).rejects.toHaveProperty('rejectAction', rejectAction);
         });
     });
 });

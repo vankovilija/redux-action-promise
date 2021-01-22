@@ -23,6 +23,12 @@ describe('subscribeToActions', () => {
         expect((subFn as any).mock.calls[0][1]).toEqual([action1, action2, action3]);
     });
 
+    it ('works with only one action', () => {
+        subscribe(action1);
+        expect(subFn).toBeCalledTimes(2);
+        expect((subFn as any).mock.calls[1][1]).toEqual([action1]);
+    });
+
     afterAll(() => {
         jest.unmock('./subscribe');
     })
