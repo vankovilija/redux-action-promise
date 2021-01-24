@@ -1,5 +1,5 @@
 import { dispatch as dispatchFactory } from './dispatch';
-import { createResponseAction } from './create-response-action';
+import { createRequestAction } from './create-request-action';
 
 describe('dispatch function that can be alter its return by input params', () => {
 
@@ -31,7 +31,7 @@ describe('dispatch function that can be alter its return by input params', () =>
             rejectActions: ['action2'],
             timeout: 10
         };
-        const action = createResponseAction({
+        const action = createRequestAction({
             type: 'action',
             payload: 1
         }, promise.resolveActions, promise.rejectActions, promise.timeout);

@@ -2,7 +2,7 @@ import { createStore } from 'redux';
 import { ActionPromiseEnhancer } from './enhancer';
 import { ActionPromiseStore } from './action-promise-store.interface';
 import { createAction } from '@reduxjs/toolkit';
-import { createResponseAction } from './create-response-action';
+import { createRequestAction } from './create-request-action';
 
 describe('ActionPromiseEnhancer', () => {
     let store: ActionPromiseStore;
@@ -140,9 +140,9 @@ describe('ActionPromiseEnhancer', () => {
             expect(returnValue).toBe(action);
         });
 
-        it ('returns and resolve a promise from dispatching a response action with the response', () => {
+        it ('returns and resolve a promise from dispatching a request action with the response', () => {
             const responseActionCreator = createAction('testActionResponse');
-            const actionCreator = createResponseAction(createAction('testAction'), responseActionCreator);
+            const actionCreator = createRequestAction(createAction('testAction'), responseActionCreator);
 
             const response = store.dispatch(actionCreator());
 
@@ -154,9 +154,9 @@ describe('ActionPromiseEnhancer', () => {
 
         it ('rejects a promise returned from dispatch with a error containing the reject action', () => {
             const rejectActionCreator = createAction('testActionReject');
-            const actionCreator = createResponseAction(createAction('testAction'), undefined, rejectActionCreator);
+            const requestActionCreator = createRequestAction(createAction('testAction'), undefined, rejectActionCreator);
 
-            const response = store.dispatch(actionCreator());
+            const response = store.dispatch(requestActionCreator());
 
             const rejectAction = rejectActionCreator();
             store.dispatch(rejectAction);

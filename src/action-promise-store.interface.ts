@@ -37,12 +37,12 @@ export type EnhancedMethods<S = any, A extends Action = AnyAction> = {
      * a promise on the store object that will be returned from the dispatch.
      *
      * There is a helper method to generate these sort of actions from a action generator function or an action object
-     * please look up `createResponseAction`
+     * please look up `createRequestAction`
      *
      * @param {Action} action
      *
-     * @returns {Action | Promise<Action>} either returns the action that was dispatched, if it is not a response
-     * action, or a promise that resolves with an action, if it is a response action.
+     * @returns {Action | Promise<Action>} either returns the action that was dispatched, if it is not a request action,
+     * or a promise that resolves with an action, if it is a request action.
      */
 
     dispatch: DispatchFunction<A>
