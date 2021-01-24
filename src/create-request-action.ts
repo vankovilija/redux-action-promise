@@ -2,7 +2,7 @@ import { Action, AnyAction } from 'redux';
 import { ActionCreatorType, ArrayOrSingleAnyTypeOfAction } from './action-promise-store.interface';
 import { isActionCreator } from './subscribe-to-actions/is-action-creator.util';
 
-const responseActionGenerator = (actionObject, responseActions, errorActions, timeout) => {
+const requestActionGenerator = (actionObject, responseActions, errorActions, timeout) => {
     return Object.assign({}, actionObject, {
         promise: {
             resolveActions: responseActions,
@@ -29,7 +29,7 @@ const responseActionGenerator = (actionObject, responseActions, errorActions, ti
  * to the function.
  */
 
-export const createResponseAction = <T extends (AnyAction | ActionCreatorType<A>), A extends Action = AnyAction>(
+export const createRequestAction = <T extends (AnyAction | ActionCreatorType<A>), A extends Action = AnyAction>(
     action?: T,
     responseActions?: ArrayOrSingleAnyTypeOfAction<A>,
     errorActions?: ArrayOrSingleAnyTypeOfAction<A>,
@@ -39,8 +39,8 @@ export const createResponseAction = <T extends (AnyAction | ActionCreatorType<A>
     if (isActionCreator(action)) {
         return ((...args) => {
             const actionObject = action(...args);
-            return responseActionGenerator(actionObject, responseActions, errorActions, timeout);
+            return requestActionGenerator(actionObject, responseActions, errorActions, timeout);
         }) as unknown as T;
     }
-    return responseActionGenerator(action, responseActions, errorActions, timeout) as any;
+    return requestActionGenerator(action, responseActions, errorActions, timeout) as any;
 };
