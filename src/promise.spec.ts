@@ -8,21 +8,32 @@ describe('the promise function returns a promise that resolves when a specific a
     const rejectAction2 = 'action4';
     const resolveActions = [resolveAction1, resolveAction2];
     const rejectActions = [rejectAction1, rejectAction2];
-    let subscribeToActions, addListener, unsubscribe, removeListener, promiseFN;
+    let subscribeToActions, addListener, unsubscribe, removeListener, promiseFN, listenerFunctions;
     beforeEach(() => {
         removeListener = [];
         addListener = [];
         unsubscribe = [];
+        listenerFunctions = [];
         subscribeToActions = jest.fn(() => {
             unsubscribe.push(jest.fn());
             removeListener.push(jest.fn());
-            addListener.push(jest.fn(() => ({remove: removeListener[removeListener.length - 1]})));
+            addListener.push(jest.fn((f) => {
+                listenerFunctions.push(f);
+                return {remove: removeListener[removeListener.length - 1]};
+            }));
             return {
                 addListener: addListener[addListener.length - 1],
                 unsubscribe: unsubscribe[unsubscribe.length - 1]
             };
         });
         promiseFN = promise(ValidationMode.COMPILETIME, subscribeToActions);
+    });
+
+    it ('resolves promise when first listener function is called', async () => {
+        const activePromise = promiseFN(resolveActions, rejectActions, 10);
+        listenerFunctions[0]();
+        await new Promise((r) => setTimeout(r, 30));
+        return expect(activePromise).resolves.toBe(undefined);
     });
 
     it ('subscribes for one action if only one is provided', () => {
