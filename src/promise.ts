@@ -54,12 +54,16 @@ export const promise = (validationMode: ValidationMode, subscribeToActions: Subs
         rejectSubscription = subscribeToActions(rejActions);
     }
 
+    let timeoutId;
     const finalizePromise = () => {
         if (resolveSubscription) {
             resolveSubscription.unsubscribe();
         }
         if (rejectSubscription) {
             rejectSubscription.unsubscribe();
+        }
+        if (timeoutId) {
+            clearTimeout(timeoutId);
         }
     };
 
@@ -76,20 +80,16 @@ export const promise = (validationMode: ValidationMode, subscribeToActions: Subs
         }
     })) as ReturnPromise;
 
-    promise.cancel = finalizePromise;
-
     if (timeout > -1) {
-        let timeoutId;
         promise = Promise.race([promise, new Promise((_, reject) => {
             timeoutId = setTimeout(() => {
                 finalizePromise();
                 reject(new TimeoutError());
             }, timeout);
         })]) as ReturnPromise;
-        promise.cancel = () => {
-            clearTimeout(timeoutId);
-            finalizePromise();
-        }
     }
+
+    promise.cancel = finalizePromise;
+
     return promise;
 };
