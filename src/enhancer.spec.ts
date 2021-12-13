@@ -164,4 +164,114 @@ describe('ActionPromiseEnhancer', () => {
             return expect(response).rejects.toHaveProperty('rejectAction', rejectAction);
         });
     });
+    describe('createActionsQueue', () => {
+        it('returns an actions queue when called', () => {
+            const queue = store.createActionQueue();
+            expect(typeof queue.dispatch).toBe('function');
+            expect(typeof queue.pauseQueue).toBe('function');
+            expect(typeof queue.resumeQueue).toBe('function');
+        });
+
+        it('queues actions when dispatched from queue', async () => {
+            const queue = store.createActionQueue();
+            const startAction = {type: 'startAction'};
+            const endAction = {type: 'endAction'};
+            const afterAction = {type: 'afterAction'};
+
+            const promise = queue.dispatch(startAction, endAction);
+            queue.dispatch(afterAction);
+            const afterActionSubscriber = store.subscribeToActions(afterAction);
+            const afterActionFinishedCallback = jest.fn();
+            afterActionSubscriber.addListener(afterActionFinishedCallback)
+            expect(afterActionFinishedCallback).not.toBeCalled();
+            store.dispatch(endAction);
+            await promise;
+            expect(afterActionFinishedCallback).toBeCalled();
+        });
+
+        it('supports multiple queues in parallel', async () => {
+            const queue1 = store.createActionQueue();
+            const startAction1 = {type: 'startAction1'};
+            const endAction1 = {type: 'endAction1'};
+            const afterAction1 = {type: 'afterAction1'};
+
+            const queue2 = store.createActionQueue();
+            const startAction2 = {type: 'startAction2'};
+            const endAction2 = {type: 'endAction2'};
+            const afterAction2 = {type: 'afterAction2'};
+
+            const promise1 = queue1.dispatch(startAction1, endAction1);
+            queue1.dispatch(afterAction1);
+            const promise2 = queue2.dispatch(startAction2, endAction2);
+            queue2.dispatch(afterAction2);
+            const afterActionSubscriber1 = store.subscribeToActions(afterAction1);
+            const afterActionFinishedCallback1 = jest.fn();
+            const afterActionSubscriber2 = store.subscribeToActions(afterAction2);
+            const afterActionFinishedCallback2 = jest.fn();
+            afterActionSubscriber1.addListener(afterActionFinishedCallback1)
+            afterActionSubscriber2.addListener(afterActionFinishedCallback2)
+            expect(afterActionFinishedCallback1).not.toBeCalled();
+            expect(afterActionFinishedCallback2).not.toBeCalled();
+            store.dispatch(endAction1);
+            await promise1;
+            expect(afterActionFinishedCallback2).not.toBeCalled();
+            expect(afterActionFinishedCallback1).toBeCalled();
+            store.dispatch(endAction2);
+            await promise2;
+            expect(afterActionFinishedCallback2).toBeCalled();
+        });
+
+        it('can be canceled', async () => {
+            const queue = store.createActionQueue();
+            const startAction = {type: 'startAction'};
+            const endAction = {type: 'endAction'};
+            const afterAction = {type: 'afterAction'};
+
+            const promise = queue.dispatch(startAction, endAction);
+            queue.dispatch(afterAction);
+            const afterActionSubscriber = store.subscribeToActions(afterAction);
+            const afterActionFinishedCallback = jest.fn();
+            afterActionSubscriber.addListener(afterActionFinishedCallback)
+            expect(afterActionFinishedCallback).not.toBeCalled();
+            promise.cancel();
+            expect(afterActionFinishedCallback).toBeCalled();
+        });
+
+        it('can be paused and resumed', async () => {
+            const queue = store.createActionQueue();
+            const startAction = {type: 'startAction'};
+            const endAction = {type: 'endAction'};
+            const afterAction = {type: 'afterAction'};
+
+            const promise = queue.dispatch(startAction, endAction);
+            queue.dispatch(afterAction);
+            queue.pauseQueue();
+            const afterActionSubscriber = store.subscribeToActions(afterAction);
+            const afterActionFinishedCallback = jest.fn();
+            afterActionSubscriber.addListener(afterActionFinishedCallback)
+            expect(afterActionFinishedCallback).not.toBeCalled();
+            store.dispatch(endAction);
+            await promise;
+            expect(afterActionFinishedCallback).not.toBeCalled();
+            queue.resumeQueue();
+            expect(afterActionFinishedCallback).toBeCalled();
+        });
+
+        it('works with request action and action creator', async () => {
+            const queue = store.createActionQueue();
+            const startAction = createAction('startAction');
+            const endAction = createAction('endAction');
+            const afterAction = createAction('afterAction');
+            const startActionPromise = queue.dispatch(createRequestAction(startAction, endAction));
+            queue.dispatch(afterAction);
+
+            const afterActionSubscriber = store.subscribeToActions(afterAction);
+            const afterActionFinishedCallback = jest.fn();
+            afterActionSubscriber.addListener(afterActionFinishedCallback)
+            expect(afterActionFinishedCallback).not.toBeCalled();
+            store.dispatch(endAction());
+            await startActionPromise;
+            expect(afterActionFinishedCallback).toBeCalled();
+        })
+    });
 });

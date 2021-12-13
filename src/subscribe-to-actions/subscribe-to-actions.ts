@@ -5,11 +5,10 @@ import { ActiveSubscriptionsIndex, ValidationMode } from '../enhancer';
 import { subscribe as subscribeFactory } from './subscribe';
 import { unsubscribe as unsubscribeFactory } from './unsubscribe';
 import { addListener as addListenerFactory } from './add-listener';
-import { isActionCreator } from './is-action-creator.util';
-import { isActionObject } from './is-action-object.util';
 import { ActionCreatorType } from '../action-promise-store.interface';
 import { AnyAction } from 'redux';
 import { convertToArray } from '../convert-to-array.util';
+import {convertActionsToActionTypes} from "../convert-actions-to-action-types.util";
 
 export const subscribeToActions = (validationMode: ValidationMode, activeSubscriptionsIndex: ActiveSubscriptionsIndex) =>
     /**
@@ -35,15 +34,7 @@ export const subscribeToActions = (validationMode: ValidationMode, activeSubscri
     const listeners = [];
     let subscriptionState = {active: false};
 
-    const mappedActions = processedActions.map((action) => {
-        if (isActionCreator(action)) {
-            const executedAction = action();
-            return executedAction.type;
-        } else if (isActionObject(action)) {
-            return action.type;
-        }
-        return action;
-    });
+    const mappedActions = convertActionsToActionTypes(processedActions);
 
     if (validationMode === ValidationMode.RUNTIME) {
         mustBeUniqueArray(mappedActions, (item) => `Action type '${item}' is duplicated among the provided actions`);

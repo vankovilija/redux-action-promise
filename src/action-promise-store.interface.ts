@@ -1,5 +1,6 @@
 import { Action, AnyAction, Store } from 'redux';
 import { Subscription } from './subscription.interface';
+import {CreateActionQueue} from "./queue/create-action-queue";
 
 export type ActionCreatorType<A extends Action = AnyAction> =
     (payload?: any, ...args: any[]) => A;
@@ -18,12 +19,14 @@ export type PromiseAction<A extends Action = AnyAction> =
         timeout?: number
     }};
 
+export type CancelablePromise<A extends Action = AnyAction> = Promise<A> & {cancel: () => void}
+
 export type PromiseFunction<A extends Action = AnyAction> =
     (
         resolveActions: ArrayOrSingleAnyTypeOfAction<A>,
         rejectActions?: ArrayOrSingleAnyTypeOfAction<A>,
         timeout?: number
-    ) => Promise<A> & {cancel: () => void};
+    ) => CancelablePromise<A>;
 
 export interface DispatchFunction<A extends Action = AnyAction> {
     <T extends A>(action: T): (T | (Promise<AnyAction> & {cancel: () => void}))
@@ -82,6 +85,23 @@ export type EnhancedMethods<S = any, A extends Action = AnyAction> = {
      */
 
     subscribeToActions: SubscriberFunction<A>
+
+    /**
+     * createActionQueue is used to create a queue that dispatches actions sequentially, if an end action is provided, or
+     * if the provided action is a request action, than the queue is progressed after the end action is executed.
+     *
+     * @returns {ActionQueue} an object with 3 methods
+     *     - dispatch a delegated version of the regular dispatch method, this will dispatch the action if the queue is
+     *     empty, or append the action to the queue, and dispatch it when it is ready. The method returns a promise that
+     *     resolves / rejects when the given action is executed, you can remove the action from the queue by cancelling
+     *     that promise.
+     *     - pauseQueue sets the state of the queue to paused, causing the queue to stop execution on further actions in
+     *     the queue, until resumed.
+     *     - resumeQueue resumes the queue and sets the state to either ACTIVE or WAITING, continuing with execution of
+     *     actions in the queue, if the queue is not empty.
+     */
+    
+    createActionQueue: CreateActionQueue<A>
 }
 
 export type ActionPromiseStore<S = any, A extends Action = AnyAction> =
