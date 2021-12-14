@@ -189,6 +189,30 @@ describe('ActionPromiseEnhancer', () => {
             expect(afterActionFinishedCallback).toBeCalled();
         });
 
+        it('it will not consider end actions prior to starting work on a given action', async () => {
+            const queue = store.createActionQueue();
+            const startAction1 = {type: 'startAction1'};
+            const endAction1 = {type: 'endAction1'};
+            const startAction2 = {type: 'startAction2'};
+            const endAction2 = {type: 'endAction2'};
+            const afterAction = {type: 'afterAction'};
+
+            const promise1 = queue.dispatch(startAction1, endAction1);
+            const promise2 = queue.dispatch(startAction2, endAction2);
+            queue.dispatch(afterAction);
+            const afterActionSubscriber = store.subscribeToActions(afterAction);
+            const afterActionFinishedCallback = jest.fn();
+            afterActionSubscriber.addListener(afterActionFinishedCallback)
+            expect(afterActionFinishedCallback).not.toBeCalled();
+            store.dispatch(endAction2); // dispatched prior to action 1 finishing
+            store.dispatch(endAction1);
+            await promise1;
+            expect(afterActionFinishedCallback).not.toBeCalled();
+            store.dispatch(endAction2);
+            await promise2;
+            expect(afterActionFinishedCallback).toBeCalled();
+        });
+
         it('supports multiple queues in parallel', async () => {
             const queue1 = store.createActionQueue();
             const startAction1 = {type: 'startAction1'};
