@@ -5,6 +5,7 @@ import { subscribeToActions } from './subscribe-to-actions';
 import { promise } from './promise';
 import { invariant } from './invariant.util';
 import { dispatch } from './dispatch';
+import { createActionQueue } from "./queue/create-action-queue";
 
 export type ActiveSubscriptionsIndex = {[action: string]: ((action: Action) => void)[][]}
 
@@ -32,11 +33,14 @@ export const ActionPromiseEnhancer: StoreEnhancer<EnhancedMethods> & {validation
 
         const dispatchFunction = dispatch(activeSubscriptionsIndex, promiseFunction, store.dispatch);
 
+        const createActionQueueFunction = createActionQueue(promiseFunction, dispatchFunction);
+
         return {
             ...store,
             dispatch: dispatchFunction,
             promise: promiseFunction,
-            subscribeToActions: subscriber
+            subscribeToActions: subscriber,
+            createActionQueue: createActionQueueFunction
         } as any;
     }
 };

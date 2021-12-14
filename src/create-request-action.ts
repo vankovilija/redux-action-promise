@@ -1,6 +1,10 @@
 import { Action, AnyAction } from 'redux';
-import { ActionCreatorType, ArrayOrSingleAnyTypeOfAction } from './action-promise-store.interface';
+import {ActionCreatorType, ArrayOrSingleAnyTypeOfAction, PromiseAction} from './action-promise-store.interface';
 import { isActionCreator } from './subscribe-to-actions/is-action-creator.util';
+
+export function isPromiseAction<A extends Action = AnyAction>(action: A | PromiseAction<A>): action is PromiseAction<A> {
+    return typeof action === 'object' && action !== null && 'promise' in action && typeof action.promise === 'object' && action.promise !== null;
+}
 
 const requestActionGenerator = (actionObject, responseActions, errorActions, timeout) => {
     return Object.assign({}, actionObject, {
