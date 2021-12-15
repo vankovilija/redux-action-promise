@@ -70,7 +70,7 @@ export const dispatchInQueue = <A extends Action = AnyAction>(
         if (queue.items[i] === undefined) {
             break;
         }
-        if (queue.items[i].priority === undefined || queue.items[i].priority >= queueItem.priority) {
+        if (queueItem.priority === undefined || queue.items[i].priority === undefined || queue.items[i].priority >= queueItem.priority) {
             i++;
             break;
         }
