@@ -296,6 +296,90 @@ describe('ActionPromiseEnhancer', () => {
             store.dispatch(endAction());
             await startActionPromise;
             expect(afterActionFinishedCallback).toBeCalled();
-        })
+        });
+
+        it('respects action priority', async () => {
+            const queue = store.createActionQueue();
+            const startAction1 = {type: 'startAction1'};
+            const startAction2 = {type: 'startAction2'};
+            const startAction3 = {type: 'startAction3'};
+            const startAction4 = {type: 'startAction4'};
+            const endAction1 = {type: 'endAction1'};
+            const endAction2 = {type: 'endAction2'};
+            const endAction3 = {type: 'endAction3'};
+            const endAction4 = {type: 'endAction4'};
+            const afterAction = {type: 'afterAction'};
+
+            const startActionSubscriber1 = store.subscribeToActions(startAction1);
+            const endActionSubscriber1 = store.subscribeToActions(endAction1);
+            const startActionSubscriber2 = store.subscribeToActions(startAction2);
+            const endActionSubscriber2 = store.subscribeToActions(endAction2);
+            const startActionSubscriber3 = store.subscribeToActions(startAction3);
+            const endActionSubscriber3 = store.subscribeToActions(endAction3);
+            const startActionSubscriber4 = store.subscribeToActions(startAction4);
+            const endActionSubscriber4 = store.subscribeToActions(endAction4);
+            const afterActionSubscriber = store.subscribeToActions(afterAction);
+            const startActionCallback1 = jest.fn();
+            const startActionCallback2 = jest.fn();
+            const startActionCallback3 = jest.fn();
+            const startActionCallback4 = jest.fn();
+            const endActionCallback1 = jest.fn();
+            const endActionCallback2 = jest.fn();
+            const endActionCallback3 = jest.fn();
+            const endActionCallback4 = jest.fn();
+            const afterActionFinishedCallback = jest.fn();
+            startActionSubscriber1.addListener(startActionCallback1)
+            expect(startActionCallback1).not.toBeCalled();
+            endActionSubscriber1.addListener(endActionCallback1)
+            expect(endActionCallback1).not.toBeCalled();
+            startActionSubscriber2.addListener(startActionCallback2)
+            expect(startActionCallback2).not.toBeCalled();
+            endActionSubscriber2.addListener(endActionCallback2)
+            expect(endActionCallback2).not.toBeCalled();
+            startActionSubscriber3.addListener(startActionCallback3)
+            expect(startActionCallback3).not.toBeCalled();
+            endActionSubscriber3.addListener(endActionCallback3)
+            expect(endActionCallback3).not.toBeCalled();
+            startActionSubscriber4.addListener(startActionCallback4)
+            expect(startActionCallback4).not.toBeCalled();
+            endActionSubscriber4.addListener(endActionCallback4)
+            expect(endActionCallback4).not.toBeCalled();
+            afterActionSubscriber.addListener(afterActionFinishedCallback)
+            expect(afterActionFinishedCallback).not.toBeCalled();
+
+            const promise1 = queue.dispatch(startAction1, endAction1, undefined, 4);
+            const promise4 = queue.dispatch(startAction4, endAction4, undefined, 1);
+            const promise2 = queue.dispatch(startAction2, endAction2, undefined, 3);
+            const promise3 = queue.dispatch(startAction3, endAction3, undefined, 2);
+            queue.dispatch(afterAction);
+
+            expect(startActionCallback1).toBeCalled();
+
+            store.dispatch(endAction1);
+            await promise1;
+            expect(endActionCallback1).toBeCalled();
+            expect(startActionCallback2).toBeCalled();
+            expect(startActionCallback3).not.toBeCalled();
+            expect(startActionCallback4).not.toBeCalled();
+            expect(afterActionFinishedCallback).not.toBeCalled();
+
+            store.dispatch(endAction2);
+            await promise2;
+            expect(endActionCallback2).toBeCalled();
+            expect(startActionCallback3).toBeCalled();
+            expect(startActionCallback4).not.toBeCalled();
+            expect(afterActionFinishedCallback).not.toBeCalled();
+
+            store.dispatch(endAction3);
+            await promise3;
+            expect(endActionCallback3).toBeCalled();
+            expect(startActionCallback4).toBeCalled();
+            expect(afterActionFinishedCallback).not.toBeCalled();
+
+            store.dispatch(endAction4);
+            await promise4;
+            expect(endActionCallback4).toBeCalled();
+            expect(afterActionFinishedCallback).toBeCalled();
+        });
     });
 });

@@ -396,6 +396,54 @@ logs:
 {type: 'endAction3'}
 {type: 'finalAction'}
 ```
+Respects priority
+```typescript
+// setup actions
+const startAction1 = {type: 'startAction1'};
+const endAction1 = {type: 'endAction1'};
+const startAction2 = {type: 'startAction2'};
+const endAction2 = {type: 'endAction2'};
+const startAction3 = {type: 'startAction3'};
+const endAction3 = {type: 'endAction3'};
+const finalAction = {type: 'finalAction'};
+
+// setup action listeners for logging
+const { addListener: startAddListener1 } = store.subscribeToActions([startAction1]);
+startAddListener1((action) => console.log(action));
+const { addListener: endAddListener1 } = store.subscribeToActions([endAction1]);
+endAddListener1((action) => console.log(action));
+const { addListener: startAddListener2 } = store.subscribeToActions([startAction2]);
+startAddListener2((action) => console.log(action));
+const { addListener: endAddListener2 } = store.subscribeToActions([endAction2]);
+endAddListener2((action) => console.log(action));
+const { addListener: startAddListener3 } = store.subscribeToActions([startAction3]);
+startAddListener3((action) => console.log(action));
+const { addListener: endAddListener3 } = store.subscribeToActions([endAction3]);
+endAddListener3((action) => console.log(action));
+const { addListener: addListenerFinal } = store.subscribeToActions([finalAction]);
+addListenerFinal((action) => console.log(action));
+
+// queue up actions
+queue.dispatch(startAction1, endAction1, undefined, 3);
+queue.dispatch(startAction3, endAction3, undefined, 1);
+queue.dispatch(startAction2, endAction2, undefined, 2);
+queue.dispatch(finalAction);
+
+// dispatch the ending actions
+store.dispatch(endAction1);
+store.dispatch(endAction2);
+store.dispatch(endAction3);
+```
+logs:
+```
+{type: 'startAction1'}
+{type: 'endAction1'}
+{type: 'startAction2'}
+{type: 'endAction2'}
+{type: 'startAction3'}
+{type: 'endAction3'}
+{type: 'finalAction'}
+```
 Multiple queues
 ```typescript
 const queue1 = store.createActionQueue();
