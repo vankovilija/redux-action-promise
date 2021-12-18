@@ -1,17 +1,18 @@
 import {QueueType} from './queue.interface';
-import {DispatchFunction, PromiseFunction} from '../action-promise-store.interface';
+import {DispatchFunction} from '../action-promise-store.interface';
 import {Action, AnyAction} from 'redux';
 import {QueueState} from './queue-state.enum';
 import {removeFromQueue} from './remove-from-queue';
 import {isQueueProcessing} from './is-queue-processing.util';
 import {findItemInQueue} from "./find-item-in-queue.util";
+import {isActionObject} from "../subscribe-to-actions/is-action-object.util";
 
 export type ProcessQueue<A extends Action = AnyAction> = () => boolean;
 
-const onActionComplete = <A extends Action = AnyAction>(queue: QueueType, dispatchFunction: DispatchFunction<A>, promise: PromiseFunction, processingItemId: number, isError: boolean) => (result: any) => {
+const onActionComplete = <A extends Action = AnyAction>(queue: QueueType, dispatchFunction: DispatchFunction<A>, processingItemId: number, isError: boolean) => (result: any) => {
     const processingItem = findItemInQueue(queue, processingItemId);
     processingItem.processingPromise = undefined;
-    const processFunction = processQueue(queue, promise, dispatchFunction);
+    const processFunction = processQueue(queue, dispatchFunction);
     removeFromQueue(queue, processFunction, processingItemId)();
     if (isError) {
         processingItem.reject(result);
@@ -27,7 +28,6 @@ const onActionComplete = <A extends Action = AnyAction>(queue: QueueType, dispat
 
 export const processQueue = <A extends Action = AnyAction>(
     queue: QueueType,
-    promise: PromiseFunction,
     dispatchFunction: DispatchFunction<A>
 ) => {
     return () => {
@@ -39,16 +39,19 @@ export const processQueue = <A extends Action = AnyAction>(
         ) {
             return false;
         }
-        if (queueItem.endActions) {
-            queueItem.processingPromise = promise(queueItem.endActions, queueItem.errorActions);
-            queueItem.processingPromise
-                .then(onActionComplete(queue, dispatchFunction, promise, queueItem.id, false))
-                .catch(onActionComplete(queue, dispatchFunction, promise, queueItem.id, true));
+        if (!queueItem.promise.resolveActions && !queueItem.promise.rejectActions) {
+            dispatchFunction<A>(queueItem as any);
+            onActionComplete(queue, dispatchFunction, queueItem.id, false)(undefined);
         } else {
-            onActionComplete(queue, dispatchFunction, promise, queueItem.id, false)(undefined);
+            queue.state = QueueState.ACTIVE;
+            const action = dispatchFunction<A>(queueItem as any);
+            if (!isActionObject(action)) {
+                queueItem.processingPromise = action;
+                queueItem.processingPromise
+                    .then(onActionComplete(queue, dispatchFunction, queueItem.id, false))
+                    .catch(onActionComplete(queue, dispatchFunction, queueItem.id, true));
+            }
         }
-        queue.state = QueueState.ACTIVE;
-        dispatchFunction<A>(queueItem.startAction as any);
         return true;
     }
 }

@@ -1,9 +1,12 @@
 import { Action, AnyAction } from 'redux';
-import {ActionCreatorType, ArrayOrSingleAnyTypeOfAction, PromiseAction} from './action-promise-store.interface';
+import {ActionCreatorType, ArrayOrSingleAnyTypeOfAction, RequestAction} from './action-promise-store.interface';
 import { isActionCreator } from './subscribe-to-actions/is-action-creator.util';
+import {isArray} from "./is-array.util";
 
-export function isPromiseAction<A extends Action = AnyAction>(action: A | PromiseAction<A>): action is PromiseAction<A> {
-    return typeof action === 'object' && action !== null && 'promise' in action && typeof action.promise === 'object' && action.promise !== null;
+export function isRequestAction<A extends Action = AnyAction>(action: A | RequestAction<A>): action is RequestAction<A> {
+    return typeof action === 'object' && action !== null && 'promise' in action && typeof action.promise === 'object' && action.promise !== null
+        && (((isArray(action.promise.resolveActions) && action.promise.resolveActions.length > 0) || action.promise.resolveActions !== undefined)
+        || ((isArray(action.promise.rejectActions) && action.promise.rejectActions.length > 0) || action.promise.rejectActions !== undefined));
 }
 
 const requestActionGenerator = (actionObject, responseActions, errorActions, timeout) => {
@@ -16,15 +19,20 @@ const requestActionGenerator = (actionObject, responseActions, errorActions, tim
     }) as AnyAction
 };
 
+type ReturnType<T, A extends Action = AnyAction> =
+    T extends ActionCreatorType ? ActionCreatorType<RequestAction<A>> :
+        T extends Action ? RequestAction<A> :
+            never;
+
 /**
  * A function that wraps your action object or action creator function to generate a action or action creator that has
  * a special data set that when dispatched will generate a promise that will resolve when any of the responseActions
  * provided are dispatched afterwards or reject when any of the errorActions are dispatched.
  *
- * @param {AnyAction | ActionCreator<AnyAction>} action an action or action creator to wrap
- * @param {Array.<string | number | AnyAction | ActionCreator<AnyAction>>} responseActions actions to resolve the
+ * @param {AnyAction | ActionCreatorType<AnyAction>} action an action or action creator to wrap
+ * @param {Array.<string | number | AnyAction | ActionCreatorType<AnyAction>>} responseActions actions to resolve the
  * promise with when this is dispatched
- * @param {Array.<string | number | AnyAction | ActionCreator<AnyAction>>} errorActions actions to reject the promise
+ * @param {Array.<string | number | AnyAction | ActionCreatorType<AnyAction>>} errorActions actions to reject the promise
  * with when this is dispatched
  * @param {number} timeout number of ms to wait for a response or reject action, after which the promise is rejected with
  * a timeout.
@@ -33,18 +41,18 @@ const requestActionGenerator = (actionObject, responseActions, errorActions, tim
  * to the function.
  */
 
-export const createRequestAction = <T extends (AnyAction | ActionCreatorType<A>), A extends Action = AnyAction>(
-    action?: T,
-    responseActions?: ArrayOrSingleAnyTypeOfAction<A>,
-    errorActions?: ArrayOrSingleAnyTypeOfAction<A>,
+export const createRequestAction = <T extends (A | ActionCreatorType<A>), A extends Action = AnyAction>(
+    action: T,
+    responseActions?: ArrayOrSingleAnyTypeOfAction,
+    errorActions?: ArrayOrSingleAnyTypeOfAction,
     timeout?: number
-): T => {
+): ReturnType<T, A> => {
 
     if (isActionCreator(action)) {
         return ((...args) => {
             const actionObject = action(...args);
             return requestActionGenerator(actionObject, responseActions, errorActions, timeout);
-        }) as unknown as T;
+        }) as ReturnType<T, A>;
     }
     return requestActionGenerator(action, responseActions, errorActions, timeout) as any;
 };

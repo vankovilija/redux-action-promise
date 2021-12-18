@@ -2,6 +2,8 @@ import {QueueType} from "./queue.interface";
 import {QueueState} from "./queue-state.enum";
 import {QueueItem} from "./queue-item.interface";
 import {dispatchInQueue, DispatchInQueue} from "./dispatch-in-queue";
+import {createQueueItem} from "./create-queue-item";
+import {createRequestAction} from "../create-request-action";
 
 describe('dispatchInQueue adds items to queue, dispatches, and sorts items', () => {
     let processFunction, queue: QueueType, dispatchFunction: DispatchInQueue, queueItems: QueueItem[];
@@ -12,12 +14,7 @@ describe('dispatchInQueue adds items to queue, dispatches, and sorts items', () 
         for (let i = 0; i < 3; i++) {
             resolveMocks.push(jest.fn());
             rejectMocks.push(jest.fn());
-            const queueItem: QueueItem = {
-                startAction: {type: `startAction${i}`},
-                endActions: [{type: `endAction${i}`}],
-                errorActions: undefined,
-                priority: i
-            }
+            const queueItem: QueueItem = createQueueItem(createRequestAction({type: `startAction${i}`}, {type: `endAction${i}`}), i) as QueueItem;
             queueItems.push(queueItem);
         }
         queue = {
@@ -41,9 +38,9 @@ describe('dispatchInQueue adds items to queue, dispatches, and sorts items', () 
     it('adds queue item when dispatched, and adds missing properties',  () => {
         dispatchFunction(queueItems[0]);
         expect(queue.items.length).toBe(1);
-        expect(queue.items[0].startAction).toBe(queueItems[0].startAction);
-        expect(queue.items[0].endActions).toBe(queueItems[0].endActions);
-        expect(queue.items[0].errorActions).toBe(queueItems[0].errorActions);
+        expect(queue.items[0].type).toBe(queueItems[0].type);
+        expect(queue.items[0].promise.resolveActions).toBe(queueItems[0].promise.resolveActions);
+        expect(queue.items[0].promise.rejectActions).toBe(queueItems[0].promise.rejectActions);
         expect(queue.items[0].priority).toBe(queueItems[0].priority);
         expect(queue.items[0].id).toBe(1);
         expect(queue.items[0].resolve).not.toBe(undefined);

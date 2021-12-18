@@ -6,10 +6,11 @@ import {isActionObject} from '../subscribe-to-actions/is-action-object.util';
 import {invariant} from '../invariant.util';
 import {ProcessQueue} from './process-queue';
 import {removeFromQueue} from "./remove-from-queue";
-import {isPromiseAction} from "../create-request-action";
-import {ArrayOrSingleAnyTypeOfAction, CancelablePromise} from "../action-promise-store.interface";
+import {createRequestAction, isRequestAction} from "../create-request-action";
+import {ArrayOrSingleAnyTypeOfAction, CancelablePromise, RequestAction} from "../action-promise-store.interface";
 import {convertToArray} from "../convert-to-array.util";
 import {isActionCreator} from "../subscribe-to-actions/is-action-creator.util";
+import {createQueueItem} from "./create-queue-item";
 
 let latestItemID: number = 0;
 
@@ -24,43 +25,26 @@ export const dispatchInQueue = <A extends Action = AnyAction>(
     queue: QueueType,
     processQueue: ProcessQueue<A>
 ) => (<A extends Action = AnyAction>(
-    startAction: (A | QueueItem),
+    action: (A | RequestAction | QueueItem),
     completeActions?: ArrayOrSingleAnyTypeOfAction<A>,
     errorActions?: ArrayOrSingleAnyTypeOfAction<A>,
-    priority?: Number
+    priority?: number
 ) => {
     let queueItem: QueueItem;
-    if (isQueueItem(startAction)) {
-        queueItem = {
-            startAction: startAction.startAction,
-            endActions: startAction.endActions,
-            errorActions: startAction.errorActions,
-            priority: startAction.priority
-        };
+    let action1;
+    if (isActionCreator(action)) {
+        action1 = action();
     } else {
-        let action;
-        if (isActionCreator(startAction)) {
-            action = startAction();
-        } else {
-            action = startAction;
-        }
-        if (isPromiseAction(action)) {
-            queueItem = {
-                startAction: action,
-                endActions: completeActions ? completeActions : action.promise.resolveActions,
-                errorActions: errorActions ? errorActions : action.promise.rejectActions,
-                priority
-            }
-        } else if (isActionObject(action)) {
-            queueItem = {
-                startAction: action,
-                endActions: completeActions,
-                errorActions: errorActions,
-                priority
-            };
-        } else {
-            invariant(false, 'Must provide Action or QueueItem as first parameter of dispatch in a queue');
-        }
+        action1 = action;
+    }
+    if (isQueueItem(action1)) {
+        queueItem = action1;
+    } else if (isRequestAction(action1)) {
+        queueItem = createQueueItem(action1, priority) as QueueItem;
+    } else if (isActionObject(action1)) {
+        queueItem = createQueueItem(createRequestAction(action1, completeActions, errorActions), priority) as QueueItem;
+    } else {
+        invariant(false, 'Must provide Action or QueueItem as first parameter of dispatch in a queue');
     }
 
     queueItem.endActions = queueItem.endActions ? convertToArray(queueItem.endActions) : undefined;

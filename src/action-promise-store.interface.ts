@@ -12,7 +12,7 @@ export type ArrayOrSingleAnyTypeOfAction<A extends Action = AnyAction> = AnyType
 export type SubscriberFunction<A extends Action = AnyAction> =
     (actions: ArrayOrSingleAnyTypeOfAction) => Subscription;
 
-export type PromiseAction<A extends Action = AnyAction> =
+export type RequestAction<A extends Action = AnyAction> =
     A & { promise: {
         resolveActions?: ArrayOrSingleAnyTypeOfAction<A>,
         rejectActions?: ArrayOrSingleAnyTypeOfAction<A>,

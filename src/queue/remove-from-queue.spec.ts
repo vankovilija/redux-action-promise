@@ -1,6 +1,9 @@
 import {QueueMemberItem, QueueType} from "./queue.interface";
 import {QueueState} from "./queue-state.enum";
 import {removeFromQueue} from "./remove-from-queue";
+import {createQueueItem} from "./create-queue-item";
+import {createRequestAction} from "../create-request-action";
+import {QueueItem} from "./queue-item.interface";
 
 describe('remove from queue removes items by ID and cancels them if processing', () => {
     let processFunction, queue: QueueType, queueItems: QueueMemberItem[];
@@ -12,14 +15,11 @@ describe('remove from queue removes items by ID and cancels them if processing',
             resolveMocks.push(jest.fn());
             rejectMocks.push(jest.fn());
             const queueItem: QueueMemberItem = {
+                ...createQueueItem(createRequestAction({type: `startAction${i}`}, {type: `endAction${i}`}), i) as QueueItem,
                 id: i,
                 processingPromise: undefined,
                 resolve: resolveMocks[i],
                 reject: rejectMocks[i],
-                startAction: {type: `startAction${i}`},
-                endActions: [{type: `endAction${i}`}],
-                errorActions: undefined,
-                priority: i
             }
             queueItems.push(queueItem);
         }
