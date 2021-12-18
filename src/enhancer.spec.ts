@@ -1,7 +1,7 @@
-import { createStore } from 'redux';
+import {createStore} from 'redux';
 import { ActionPromiseEnhancer } from './enhancer';
 import { ActionPromiseStore } from './action-promise-store.interface';
-import { createAction } from '@reduxjs/toolkit';
+import {createAction} from '@reduxjs/toolkit';
 import { createRequestAction } from './create-request-action';
 
 describe('ActionPromiseEnhancer', () => {
@@ -143,7 +143,6 @@ describe('ActionPromiseEnhancer', () => {
         it ('returns and resolve a promise from dispatching a request action with the response', () => {
             const responseActionCreator = createAction('testActionResponse');
             const actionCreator = createRequestAction(createAction('testAction'), responseActionCreator);
-
             const response = store.dispatch(actionCreator());
 
             const responseAction = responseActionCreator();
@@ -286,7 +285,7 @@ describe('ActionPromiseEnhancer', () => {
             const startAction = createAction('startAction');
             const endAction = createAction('endAction');
             const afterAction = createAction('afterAction');
-            const startActionPromise = queue.dispatch(createRequestAction(startAction, endAction));
+            const startActionPromise = queue.dispatch(createRequestAction(startAction, endAction)());
             queue.dispatch(afterAction);
 
             const afterActionSubscriber = store.subscribeToActions(afterAction);

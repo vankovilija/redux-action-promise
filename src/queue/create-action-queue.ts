@@ -1,4 +1,4 @@
-import {DispatchFunction, PromiseFunction} from '../action-promise-store.interface';
+import {DispatchFunction} from '../action-promise-store.interface';
 import {Action, AnyAction} from 'redux';
 import {QueueType} from './queue.interface';
 import {DispatchInQueue, dispatchInQueue} from './dispatch-in-queue';
@@ -16,7 +16,6 @@ export type ActionQueue<A extends Action = AnyAction> = {
 export type CreateActionQueue<A extends Action = AnyAction> = () => ActionQueue<A>
 
 export const createActionQueue = <A extends Action = AnyAction>(
-    promise: PromiseFunction,
     dispatchFunction: DispatchFunction<A>
 ) => {
     return () => {
@@ -24,7 +23,7 @@ export const createActionQueue = <A extends Action = AnyAction>(
             items: [],
             state: QueueState.WAITING
         };
-        const processFunction = processQueue(queueOfActions, promise, dispatchFunction);
+        const processFunction = processQueue(queueOfActions, dispatchFunction);
         return {
             dispatch: dispatchInQueue<A>(queueOfActions, processFunction),
             pauseQueue: pauseQueue(queueOfActions),

@@ -33,7 +33,7 @@ export const ActionPromiseEnhancer: StoreEnhancer<EnhancedMethods> & {validation
 
         const dispatchFunction = dispatch(activeSubscriptionsIndex, promiseFunction, store.dispatch);
 
-        const createActionQueueFunction = createActionQueue(promiseFunction, dispatchFunction);
+        const createActionQueueFunction = createActionQueue(dispatchFunction);
 
         return {
             ...store,
