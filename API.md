@@ -1,6 +1,25 @@
 # Redux action promise enhancer API spec
 ## Store level methods
 
+#### Store level methods
+ - [dispatch](#dispatch)
+ - [promise](#promise)
+ - [createActionQueue](#create-action-queue)
+ - [subscribeToActions](#subscribe-to-actions)
+#### Library level
+ -- Classes 
+ - [Subscription](#subscription)
+ - [CancelablePromise](#cancelable-promise)
+ - [ActionQueue](#action-queue)
+ - [RequestAction](#request-action)
+ - [QueueItem](#queue-item)
+ - [Listener](#listener)
+
+ -- Methods
+ - [createRequestAction](#create-request-action)
+ - [createQueueItem](#create-queue-item)
+
+
 ### Dispatch
 The dispatch function is updated when this enhancer is applied, the first parameter of the dispatch function can be any
 redux action or a request action. If a request action is provided, the return from the dispatch will be a CancelablePromise
@@ -82,6 +101,49 @@ function createActionQueue(): ActionQueue
 #### returns
 an instance of a ActionQueue
 ## Library level
+### Create request action
+Creates a request action, that when dispatched on a store that is enhanced with action promise enhancer will return a promise
+that is resolved when any of the response actions is dispatched on the store, or rejected when any of the reject actions is
+dispatched on the store.
+```typescript
+function createRequestAction(
+    action: AnyAction,
+    responseActions?: AnyAction | AnyAction[],
+    errorActions?: AnyAction | AnyAction[],
+    timeout?: number
+): RequestAction
+```
+#### params
+**action** - the main action dispatched in the store when a request action is provided.
+
+**responseActions** - an array or a single action that is expected to be dispatched on the store at a later date (after action)
+that will resolve the promise returned from the dispatch when providing the request action to it.
+
+**errorActions** - an array or a single action that is expected to be dispatched on the store at a later date (after action)
+that will reject the promise returned from dispatch when providing the request action to it.
+
+**timeout** - a number that specifies the amount of *ms* until the request action times out, and the promise is rejected due to it
+(this will occur if no response action and no error action are dispatched in that time from when the request action is provided
+to the dispatch method of the store).
+
+#### returns
+RequestAction type
+### Create queue item
+Creates a queue item that can be dispatched as a regular action, however, if dispatched in a queue, it will follow its
+defined priority and dispatch with that priority at an appropriate time.
+```typescript
+function createQueueItem(requestAction: RequestAction, priority?: number): QueueItem
+```
+#### params
+**requestAction** - a request action that will be used as bases for the queue item
+
+**priority** - a optional number that specifies the priority this item has in a queue, items with the largest priority
+will be at the top of the queue, while items with the lowest priority will be at the bottom. Items with undefined
+priority will be added at the bottom of the queue after any defined priority in the order they were added.
+
+#### returns
+QueueItem type
+
 ### Subscription
 A Subscription is a class that is instantiated on every subscription on a redux action. The class contains methods to attach
 listeners to this subscription, invoked when the action it is subscribed to is dispatched, and an unsubscribe method,
@@ -115,33 +177,6 @@ interface Listener {
 ```
 #### properties
 **remove** - removes the listener referenced by this particular listener object.
-### Create request action
-Creates a request action, that when dispatched on a store that is enhanced with action promise enhancer will return a promise
-that is resolved when any of the response actions is dispatched on the store, or rejected when any of the reject actions is
-dispatched on the store.
-```typescript
-function createRequestAction(
-    action: AnyAction,
-    responseActions?: AnyAction | AnyAction[],
-    errorActions?: AnyAction | AnyAction[],
-    timeout?: number
-): RequestAction
-```
-#### params
-**action** - the main action dispatched in the store when a request action is provided.
-
-**responseActions** - an array or a single action that is expected to be dispatched on the store at a later date (after action)
-that will resolve the promise returned from the dispatch when providing the request action to it.
-
-**errorActions** - an array or a single action that is expected to be dispatched on the store at a later date (after action)
-that will reject the promise returned from dispatch when providing the request action to it.
-
-**timeout** - a number that specifies the amount of *ms* until the request action times out, and the promise is rejected due to it
-(this will occur if no response action and no error action are dispatched in that time from when the request action is provided
-to the dispatch method of the store).
-
-#### returns
-RequestAction type
 
 ### Request action
 A Request action object is an object that extends a redux action, however also contains a promise object that defines the
@@ -171,6 +206,19 @@ that will reject the promise returned from dispatch when providing the request a
 **timeout** - a number that specifies the amount of *ms* until the request action times out, and the promise is rejected due to it
 (this will occur if no response action and no error action are dispatched in that time from when the request action is provided
 to the dispatch method of the store).
+
+### Queue item
+A Queue item is a request action with a defined priority to be used when dispatched in a queue
+```typescript
+interface QueueItem extends RequestAction {
+    priority: number
+}
+```
+
+#### properties
+**priority** - a optional number property that specifies the priority this item has in a queue, items with the largest priority
+will be at the top of the queue, while items with the lowest priority will be at the bottom. Items with undefined
+priority will be added at the bottom of the queue after any defined priority in the order they were added.
 
 ### Cancelable promise
 Cancelable promise is a class that extends regular vanilla javascript Promise with an extra cancel method. When invoked

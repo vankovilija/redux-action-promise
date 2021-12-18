@@ -43,6 +43,8 @@ if you have multiple enhancers, simply using the redux <a href="https://redux.js
 const store: ActionPromiseStore = createStore(myReducer, compose(ActionPromiseEnhancer, ...otherEnhancers));
 ```
 
+[API Documentation](API.md)
+
 ## Contents
 
 [Request Actions](#request-actions)
