@@ -9,4 +9,12 @@ describe('mustNotContainArray is a functionality to determine that no elements f
     it ('continues if the input is a array with at least one element', () => {
         expect(() => mustNotContainArray(['one', 'two'], ['four', 'five'], (item) => `${item} is contained in both arrays`)).not.toThrowError();
     });
+
+    it ('it works with non-array objects', () => {
+        expect(() => mustNotContainArray('one', 'four', (item) => `${item} is contained in both arrays`)).not.toThrowError();
+    });
+
+    it ('it works with undefined', () => {
+        expect(() => mustNotContainArray(undefined, undefined, (item) => `${item} is contained in both arrays`)).not.toThrowError();
+    });
 });

@@ -12,8 +12,7 @@ describe('unsubscribe function that remove a subscription of listeners', () => {
         listeners = [];
         activeSubscriptionIndex = {
             [action1]: [listeners],
-            [action2]: [listeners],
-            [action3]: [listeners]
+            [action3]: []
         };
         unsubscribe = unsubscribeFactory(subscriptionState, actions, activeSubscriptionIndex, listeners);
     });

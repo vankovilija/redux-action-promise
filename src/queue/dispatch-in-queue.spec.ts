@@ -1,7 +1,7 @@
 import {QueueType} from "./queue.interface";
 import {QueueState} from "./queue-state.enum";
 import {QueueItem} from "./queue-item.interface";
-import {dispatchInQueue, DispatchInQueue} from "./dispatch-in-queue";
+import {dispatchInQueue, DispatchInQueue, MAX_QUEUE_ITEMS} from "./dispatch-in-queue";
 import {createQueueItem} from "./create-queue-item";
 import {createRequestAction} from "../create-request-action";
 
@@ -49,6 +49,13 @@ describe('dispatchInQueue adds items to queue, dispatches, and sorts items', () 
         expect(processFunction).toBeCalled();
     });
 
+    it('can dispatch normal redux actions in a queue', () => {
+        const normalAction = {type: 'testNormal'};
+        dispatchFunction(normalAction);
+        expect(queue.items.length).toBe(1);
+        expect(queue.items[0].type).toBe(normalAction.type);
+    });
+
     it('adds queue items when dispatched at the end of the queue, and sorts them',  () => {
         dispatchFunction(queueItems[2]);
         dispatchFunction(queueItems[0]);
@@ -57,5 +64,22 @@ describe('dispatchInQueue adds items to queue, dispatches, and sorts items', () 
         expect(queue.items[0].startAction).toBe(queueItems[2].startAction);
         expect(queue.items[1].startAction).toBe(queueItems[1].startAction);
         expect(queue.items[2].startAction).toBe(queueItems[0].startAction);
+    });
+
+    it('throws an invariant error if invalid parameters are provided',  () => {
+        try {
+            dispatchFunction('test' as any);
+        } catch (e) {
+            expect(e.message).toBe('[Redux Action Promise Invariant Error]: Must provide Action or QueueItem as first parameter of dispatch in a queue')
+        }
+    });
+
+
+    it('cycles ids back down to 0 if out of item ids',  () => {
+        dispatchFunction = dispatchInQueue(queue, processFunction, MAX_QUEUE_ITEMS - 1);
+        dispatchFunction(queueItems[1]);
+        dispatchFunction(queueItems[0]);
+        expect(queue.items[0].id).toBe(MAX_QUEUE_ITEMS);
+        expect(queue.items[1].id).toBe(0);
     });
 })

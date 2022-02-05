@@ -84,6 +84,23 @@ describe('processQueue picks up the first item in a queue if the queue is in sta
         expect(queue.state).toBe(QueueState.ACTIVE);
     });
 
+    it ('if queue item is worked on and its promise is rejected, the next item will be picked up', async () => {
+        queue.items = queueItems.slice();
+        const result = processQueueFunction();
+        expect(result).toBe(true);
+        expect(dispatchFunction).toBeCalled();
+        const queueStartLength = queue.items.length;
+        dispatchFunction.rejects[0](new Error('test'));
+        try {
+            await dispatchFunction.promises[0];
+        }catch (e) {
+        } finally {
+            expect(queueStartLength - queue.items.length).toBe(1);
+            expect(queue.items[0].processingPromise !== undefined).toBe(true);
+            expect(queue.state).toBe(QueueState.ACTIVE);
+        }
+    });
+
     it ('if queue item is worked on and its promise is resolved, and the queue is emptied, state goes back to WAITING', async () => {
         queue.items.push(queueItems[0]);
         processQueueFunction();

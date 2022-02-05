@@ -1,4 +1,4 @@
-[![Build Status](https://app.travis-ci.com/vankovilija/redux-action-promise.svg?branch=master)](https://app.travis-ci.com/vankovilija/redux-action-promise)
+[![Build Status](https://app.travis-ci.com/vankovilija/redux-action-promise.svg?branch=master)](https://app.travis-ci.com/vankovilija/redux-action-promise) [![Coverage Status](https://coveralls.io/repos/github/vankovilija/redux-action-promise/badge.svg?branch=master)](https://coveralls.io/github/vankovilija/redux-action-promise?branch=master) [![NPM Package Version](https://badgen.net/npm/v/redux-action-promise-enhancer)](https://www.npmjs.com/package/redux-promise-middleware-actions) [![NPM Package Version](https://badgen.net/bundlephobia/minzip/redux-action-promise-enhancer)](https://bundlephobia.com/package/redux-action-promise-enhancer)
 # Redux Action Promise
 Create a promise from a redux store and a list of expected actions that will resolve in the future
 

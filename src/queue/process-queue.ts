@@ -39,18 +39,14 @@ export const processQueue = <A extends Action = AnyAction>(
         ) {
             return false;
         }
-        if (!queueItem.promise.resolveActions && !queueItem.promise.rejectActions) {
-            dispatchFunction<A>(queueItem as any);
+        const action = dispatchFunction<A>(queueItem as any);
+        if (isActionObject(action)) {
             onActionComplete(queue, dispatchFunction, queueItem.id, false)(undefined);
         } else {
             queue.state = QueueState.ACTIVE;
-            const action = dispatchFunction<A>(queueItem as any);
-            if (!isActionObject(action)) {
-                queueItem.processingPromise = action;
-                queueItem.processingPromise
-                    .then(onActionComplete(queue, dispatchFunction, queueItem.id, false))
-                    .catch(onActionComplete(queue, dispatchFunction, queueItem.id, true));
-            }
+            queueItem.processingPromise = action;
+            queueItem.processingPromise
+                .then(onActionComplete(queue, dispatchFunction, queueItem.id, false), onActionComplete(queue, dispatchFunction, queueItem.id, true));
         }
         return true;
     }
