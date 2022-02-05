@@ -1,3 +1,4 @@
+[![Build Status](https://app.travis-ci.com/vankovilija/redux-action-promise.svg?branch=master)](https://app.travis-ci.com/vankovilija/redux-action-promise)
 # Redux Action Promise
 Create a promise from a redux store and a list of expected actions that will resolve in the future
 
