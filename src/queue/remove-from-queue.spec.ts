@@ -69,4 +69,16 @@ describe('remove from queue removes items by ID and cancels them if processing',
         expect(cancelMock).toBeCalled();
         expect(processFunction).toBeCalled();
     });
+
+    it ('cancels promises when removing items if running, and does not processQueue function if paused',  () => {
+        queue.items = queueItems.slice();
+        queue.state = QueueState.PAUSED;
+        queue.items[1].processingPromise = Promise.resolve() as any;
+        const cancelMock = jest.fn();
+        queue.items[1].processingPromise.cancel = cancelMock;
+        const removeFromQueueFunction = removeFromQueue(queue, processFunction, 1);
+        removeFromQueueFunction();
+        expect(cancelMock).toBeCalled();
+        expect(processFunction).not.toBeCalled();
+    });
 })
