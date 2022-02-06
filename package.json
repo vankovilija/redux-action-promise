@@ -17,6 +17,8 @@
   "keywords": [
     "redux",
     "redux-actions",
+    "redux-saga",
+    "redux-store",
     "typescript",
     "typesafe",
     "typesafe-actions",
@@ -25,7 +27,14 @@
     "actions",
     "epics",
     "component",
-    "rxjs"
+    "rxjs",
+    "promise",
+    "promise-action",
+    "promise",
+    "action",
+    "promise-middleware",
+    "middleware",
+    "store"
   ],
   "author": "Ilija Vankov",
   "license": "MIT",

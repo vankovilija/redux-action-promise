@@ -1,6 +1,23 @@
 [![Build Status](https://app.travis-ci.com/vankovilija/redux-action-promise.svg?branch=master)](https://app.travis-ci.com/vankovilija/redux-action-promise) [![Coverage Status](https://coveralls.io/repos/github/vankovilija/redux-action-promise/badge.svg?branch=master)](https://coveralls.io/github/vankovilija/redux-action-promise?branch=master) [![NPM Package Version](https://badgen.net/npm/v/redux-action-promise-enhancer)](https://www.npmjs.com/package/redux-promise-middleware-actions) [![NPM Package Version](https://badgen.net/bundlephobia/minzip/redux-action-promise-enhancer)](https://bundlephobia.com/package/redux-action-promise-enhancer)
 # Redux Action Promise
-Create a promise from a redux store and a list of expected actions that will resolve in the future
+Listen to redux actions being dispatched outside redux reducers, create queues of actions.
+ - Subscribe to actions in a redux store
+ - Create a promise from a redux store with a list of expected actions that will resolve in the future
+ - Return a promise from a dispatch on a redux store, with a dispatch action and a list of actions that will resolve or reject the promise
+ - chain actions in a queue and execute them sequentially in a specific order, pause and resume the execution of the queue at will.
+
+## Why does this package exist?
+When starting work on this, there was no easy way to chain actions in redux sequentially or to listen for a given action
+outside the context of the reducer in redux. This becomes a problem when working with any more complex processing of
+actions, that trigger async events, such as requesting an API based on an action, and dispatching an action with the 
+result.
+
+With this package you are able to listen for the result where the dispatch is made, and handle the result there as well
+as in the reducer, this gives you more flexibility in redux-saga or similar packages on handling these cases.
+
+In addition, when a project gets to a certain size, it is difficult to ensure the order of execution of actions
+(for ex. if a dialogs are opened from one part of the application in sequence, it is not simple to add a dialog in the
+middle of the sequence, or to pause the execution of the dialogs and resume later).
 
 ## Installation
 
