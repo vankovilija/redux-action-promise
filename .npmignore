@@ -8,4 +8,4 @@ tsconfig.json
 jest-tsconfig.json
 tslint.json
 .idea
-travis.yml
+.travis.yml
