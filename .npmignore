@@ -4,4 +4,7 @@ node_modules
 jest.config.js
 package-lock.json
 tsconfig.json
+jest-tsconfig.json
 tslint.json
+.idea
+travis.yml
